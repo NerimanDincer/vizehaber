@@ -1,0 +1,29 @@
+﻿@model vizehaber.ViewModels.CategoryModel
+@{
+    ViewData["Title"] = "Yeni Kategori Ekle";
+    Layout = "_LayoutAdmin";
+}
+
+@section CardHeader {
+    <span>Yeni Kategori Ekle</span>
+}
+
+<form asp-action="Add" asp-controller="Category" method="post">
+    <div class="mb-3">
+        <label class="form-label">Kategori Adı</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="IsActive" class="form-check-input" />
+        <label asp-for="IsActive" class="form-check-label">Aktif mi?</label>
+    </div>
+
+    <button type="submit" class="btn btn-success">Ekle</button>
+    <a asp-action="Index" asp-controller="Category" class="btn btn-secondary">Geri</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

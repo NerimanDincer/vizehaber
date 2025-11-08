@@ -1,0 +1,22 @@
+﻿@model vizehaber.ViewModels.CategoryModel
+@{
+    ViewData["Title"] = "Kategori Sil";
+    Layout = "_LayoutAdmin";
+}
+
+@section CardHeader {
+    <span>Kategori Sil</span>
+}
+
+<h5>Bu kategoriyi silmek istediğinize emin misiniz?</h5>
+
+<div class="mb-3">
+    <label class="form-label">Kategori Adı:</label>
+    <input class="form-control" value="@Model.Name" readonly />
+</div>
+
+<form asp-action="Delete" asp-controller="Category" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Sil</button>
+    <a asp-action="Index" asp-controller="Category" class="btn btn-secondary">İptal</a>
+</form>
