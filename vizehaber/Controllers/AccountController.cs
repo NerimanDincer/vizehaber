@@ -1,67 +1,68 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using vizehaber.Models;
 using vizehaber.ViewModels;
-using System.Threading.Tasks;
+using vizehaber.Models; // User modelimiz için
+using Microsoft.AspNetCore.Http;
+using System.Linq;
 
 namespace vizehaber.Controllers
 {
-    public class UserController : Controller
+    public class AccountController : Controller
     {
         private readonly AppDbContext _context;
 
-        public UserController(AppDbContext context)
+        public AccountController(AppDbContext context)
         {
             _context = context;
         }
 
-        // GET: /User/Login
+        // GET: /Account/Login
         public IActionResult Login()
         {
             return View();
         }
 
+        // POST: /Account/Login
         [HttpPost]
-        public async Task<IActionResult> Login(LoginViewModel model)
+        public IActionResult Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
                 return View(model);
 
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u =>
-                    (u.UserName == model.UserNameOrEmail || u.Email == model.UserNameOrEmail) &&
-                    u.Password == model.Password &&
-                    u.IsActive);
+            var user = _context.Users
+                        .FirstOrDefault(u => u.UserName == model.UserNameOrEmail && u.Password == model.Password && u.IsActive);
 
             if (user == null)
             {
-                ModelState.AddModelError("", "Kullanıcı adı/email veya şifre yanlış!");
+                ModelState.AddModelError("", "Kullanıcı adı veya şifre yanlış!");
                 return View(model);
             }
 
+            // Session ile login
+            HttpContext.Session.SetString("FullName", user.FullName);
             HttpContext.Session.SetString("UserName", user.UserName);
-            HttpContext.Session.SetString("UserRole", user.Role);
+            HttpContext.Session.SetString("Role", user.Role);
 
             return RedirectToAction("Index", "Home");
         }
 
-        // GET: /User/Register
+        // GET: /Account/Register
         public IActionResult Register()
         {
             return View();
         }
 
+        // POST: /Account/Register
         [HttpPost]
-        public async Task<IActionResult> Register(RegisterViewModel model)
+        public IActionResult Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid)
                 return View(model);
 
+            // Kullanıcı kaydı
             var user = new User
             {
                 FullName = model.FullName,
                 UserName = model.UserName,
-                Email = model.Email,
                 Password = model.Password,
                 Role = model.Role,
                 IsActive = true,
@@ -70,12 +71,12 @@ namespace vizehaber.Controllers
             };
 
             _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
             return RedirectToAction("Login");
         }
 
-        // Logout
+        // GET: /Account/Logout
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();

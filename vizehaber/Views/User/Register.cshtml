@@ -1,0 +1,50 @@
+﻿@model vizehaber.ViewModels.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Kayıt Ol";
+    Layout = "_LayoutAdmin";
+}
+
+@section CardHeader {
+    <span>Kayıt Ol</span>
+}
+
+<form asp-action="Register" method="post">
+    <div class="mb-2">
+        <label>Ad Soyad</label>
+        <input asp-for="FullName" class="form-control" />
+        <span class="text-danger" asp-validation-for="FullName"></span>
+    </div>
+
+    <div class="mb-2">
+        <label>Kullanıcı Adı</label>
+        <input asp-for="UserName" class="form-control" />
+        <span class="text-danger" asp-validation-for="UserName"></span>
+    </div>
+
+    <div class="mb-2">
+        <label>Email</label>
+        <input asp-for="Email" type="email" class="form-control" />
+        <span class="text-danger" asp-validation-for="Email"></span>
+    </div>
+
+    <div class="mb-2">
+        <label>Şifre</label>
+        <input asp-for="Password" type="password" class="form-control" />
+        <span class="text-danger" asp-validation-for="Password"></span>
+    </div>
+
+    <div class="mb-2">
+        <label>Şifreyi Tekrar</label>
+        <input asp-for="ConfirmPassword" type="password" class="form-control" />
+        <span class="text-danger" asp-validation-for="ConfirmPassword"></span>
+    </div>
+
+    <div class="mb-2">
+        <input type="submit" value="Kayıt Ol" class="btn btn-success" />
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

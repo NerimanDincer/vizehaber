@@ -9,7 +9,7 @@ using vizehaber.ViewModels;
 
 namespace vizehaber.Controllers
 {
-    [Authorize(Roles = "Admin")] // Sadece admin kullanıcılar erişebilir. Normal kullanıcı veya yazar girmeye çalışırsa engellenir.
+   // [Authorize(Roles = "Admin")] // Sadece admin kullanıcılar erişebilir. Normal kullanıcı veya yazar girmeye çalışırsa engellenir.
 
     public class CategoryController : Controller
     {

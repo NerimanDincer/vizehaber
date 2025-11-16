@@ -1,0 +1,36 @@
+﻿@model vizehaber.Models.Author
+
+@{
+    ViewData["Title"] = Model.Name;
+    Layout = "_LayoutAdmin"; // Admin layout kullanıyorsak
+}
+
+@section CardHeader {
+    <span>Yazar Detay</span>
+}
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <img src="~/userPhotos/@Model.PhotoPath" class="card-img-top" alt="@Model.Name" />
+            <div class="card-body">
+                <h3>@Model.Name</h3>
+                <p>@Model.Bio</p>
+                <p><strong>Email:</strong> @Model.Email</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <h4>Yazdığı Haberler</h4>
+        <ul class="list-group">
+            @foreach (var news in Model.News)
+            {
+                <li class="list-group-item">
+                    <strong>@news.Title</strong> - @news.PublishedDate.ToShortDateString()
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+

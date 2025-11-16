@@ -1,0 +1,32 @@
+﻿@model vizehaber.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = "Giriş Yap";
+    Layout = "_LayoutAdmin";
+}
+
+@section CardHeader {
+    <span>Giriş Yap</span>
+}
+
+<form asp-action="Login" method="post">
+    <div class="mb-2">
+        <label>Kullanıcı adı veya Email</label>
+        <input asp-for="UserNameOrEmail" class="form-control" />
+        <span class="text-danger" asp-validation-for="UserNameOrEmail"></span>
+    </div>
+
+    <div class="mb-2">
+        <label>Şifre</label>
+        <input asp-for="Password" type="password" class="form-control" />
+        <span class="text-danger" asp-validation-for="Password"></span>
+    </div>
+
+    <div class="mb-2">
+        <input type="submit" value="Giriş Yap" class="btn btn-primary" />
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

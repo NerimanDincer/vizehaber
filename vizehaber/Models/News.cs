@@ -4,16 +4,20 @@ namespace vizehaber.Models
 {
     public class News : BaseEntity
     {
-        public string Title { get; set; }       // Haber başlığı
-        public string Content { get; set; }     // Haber içeriği
-        public DateTime PublishedDate { get; set; }  // Yayınlanma tarihi
+        public string Title { get; set; }              // Haber başlığı
+        public string Content { get; set; }            // Haber içeriği
+        public DateTime PublishedDate { get; set; }    // Yayınlanma tarihi
 
-        // Foreign key - kategori
+        // ✅ Kategori ilişkisi
         public int CategoryId { get; set; }
         public Category Category { get; set; }
 
-        // Foreign key - yazar
+        // ✅ Yazar ilişkisi
         public int AuthorId { get; set; }
         public Author Author { get; set; }
+
+        // ✅ Opsiyonel alanlar - geliştirilebilir
+        public string? ImagePath { get; set; }         // Haber fotoğrafı (wwwroot/newsPhotos)
+        public bool IsApproved { get; set; } = false;  // Admin onaylı mı?
     }
 }
