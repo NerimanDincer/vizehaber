@@ -1,17 +1,23 @@
-﻿using System;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace vizehaber.Models
 {
     public class Contact : BaseEntity
     {
-        public string Name { get; set; }          // Gönderen adı
-        public string Email { get; set; }         // Mail adresi
-        public string Subject { get; set; }       // Konu
-        public string Message { get; set; }       // Mesaj içeriği
+        [Required(ErrorMessage = "Ad Soyad zorunludur")]
+        [Display(Name = "Ad Soyad")]
+        public string Name { get; set; }
 
-        // Opsiyonel fotoğraf (kullanıcı ihbar eklerse)
+        [Required(ErrorMessage = "E-posta zorunludur")]
+        [EmailAddress]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Konu zorunludur")]
+        public string Subject { get; set; }
+
+        [Required(ErrorMessage = "Mesaj zorunludur")]
+        public string Message { get; set; }
+
         public string? PhotoPath { get; set; }
-
-        public DateTime Date { get; set; } = DateTime.Now; // Gönderim tarihi
     }
 }

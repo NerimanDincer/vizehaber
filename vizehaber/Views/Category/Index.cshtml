@@ -1,52 +1,67 @@
-﻿@model List<vizehaber.ViewModels.CategoryModel>
+﻿@model List<vizehaber.Models.Category>
 @{
     ViewData["Title"] = "Kategoriler";
-    Layout = "_LayoutAdmin";
+    // Eğer _LayoutAdmin dosyan yoksa burayı _Layout yapmalısın:
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@section CardHeader{
+@section CardHeader {
     <span>Kategoriler</span>
 }
 
-<a asp-action="Add" asp-controller="Category" class="btn btn-success mb-3">Yeni Kategori Ekle</a>
+<a asp-action="Create" asp-controller="Category" class="btn btn-success mb-3">Yeni Kategori Ekle</a>
 
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Adı</th>
-            <th>Durumu</th>
-            <th>Eklenme</th>
-            <th>Güncellenme</th>
-            <th>Düzenle - Sil</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.Id</td>
-                <td>@item.Name</td>
-                <td>
-                    @if (item.IsActive)
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Adı</th>
+                        <th>Durumu</th>
+                        <th>Eklenme</th>
+                        <th>Güncellenme</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
                     {
-                        <span class="badge bg-danger text-white">Aktif</span>
+                        <tr>
+                            <td>@item.Id</td>
+                            <td>@item.Name</td>
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge badge-success">Aktif</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-danger">Pasif</span>
+                                }
+                            </td>
+
+                            <td>@item.CreatedDate.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td>@item.UpdatedDate.ToString("dd.MM.yyyy HH:mm")</td>
+
+                            <td>
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-edit"></i> Düzenle
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-trash"></i> Sil
+                                </a>
+                            </td>
+                        </tr>
                     }
-                    else
-                    {
-                        <span class="badge bg-danger text-white">Pasif</span>
-                    }
-                </td>
-                <td>@item.Created</td>
-                <td>@item.Updated</td>
-                <td>
-                    <a asp-action="Update" asp-route-id="@item.Id" class="btn btn-primary btn-sm">Düzenle</a>
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Sil</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+                </tbody>
+            </table>
 
-
-
+            @if (Model.Count == 0)
+            {
+                <div class="alert alert-warning">Henüz hiç kategori eklenmemiş.</div>
+            }
+        </div>
+    </div>
+</div>

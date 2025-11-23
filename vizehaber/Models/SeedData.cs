@@ -1,103 +1,44 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using vizehaber.Models;
 
 namespace vizehaber.Models
 {
     public static class SeedData
     {
-        public static void Seed(this ModelBuilder modelBuilder)
+        public static void Initialize(IServiceProvider serviceProvider)
         {
-            // Kategoriler
-            modelBuilder.Entity<Category>().HasData(
-                new Category { Id = 1, Name = "Siyaset", IsActive = true, Created = DateTime.Now, Updated = DateTime.Now },
-                new Category { Id = 2, Name = "Ekonomi", IsActive = true, Created = DateTime.Now, Updated = DateTime.Now },
-                new Category { Id = 3, Name = "Spor", IsActive = true, Created = DateTime.Now, Updated = DateTime.Now }
-            );
+            using (var context = new AppDbContext(
+                serviceProvider.GetRequiredService<DbContextOptions<AppDbContext>>()))
+            {
+                context.Database.EnsureCreated();
 
-            // Yazarlar
-            modelBuilder.Entity<Author>().HasData(
-                new Author
-                {
-                    Id = 1,
-                    Name = "Ahmet Yazar",
-                    Email = "ahmet@yazar.com",
-                    Password = "1234",
-                    PhotoPath = "/userPhotos/ahmet.jpg",
-                    Bio = "Siyaset alanında uzman gazeteci.",
-                    IsActive = true,
-                    Created = DateTime.Now,
-                    Updated = DateTime.Now
-                },
-                new Author
-                {
-                    Id = 2,
-                    Name = "Ayşe Yazar",
-                    Email = "ayse@yazar.com",
-                    Password = "1234",
-                    PhotoPath = "/userPhotos/ayse.jpg",
-                    Bio = "Ekonomi yazılarıyla tanınan deneyimli yazar.",
-                    IsActive = true,
-                    Created = DateTime.Now,
-                    Updated = DateTime.Now
-                }
-            );
+                if (context.Users.Any()) return;
 
-            // Kullanıcılar
-            modelBuilder.Entity<User>().HasData(
-                new User
-                {
-                    Id = 1,
-                    FullName = "Ali Kullanıcı",
-                    UserName = "alikullanici",
-                    Email = "ali@user.com",
-                    Password = "1234",
-                    Role = "User",
-                    PhotoPath = "/userPhotos/ali.png",
-                    IsActive = true,
-                    Created = DateTime.Now,
-                    Updated = DateTime.Now
-                },
-                new User
-                {
-                    Id = 2,
-                    FullName = "Admin Kullanıcı",
-                    UserName = "admin",
-                    Email = "admin@admin.com",
-                    Password = "admin",
-                    Role = "Admin",
-                    PhotoPath = "/userPhotos/admin.png",
-                    IsActive = true,
-                    Created = DateTime.Now,
-                    Updated = DateTime.Now
-                }
-            );
-
-            // Haberler
-            modelBuilder.Entity<News>().HasData(
-                new News
-                {
-                    Id = 1,
-                    Title = "Siyaset Haberi 1",
-                    Content = "Siyaset gündemine dair haber 1.",
-                    PublishedDate = DateTime.Now,
-                    CategoryId = 1,
-                    AuthorId = 1,
-                    IsActive = true,
-                    Created = DateTime.Now,
-                    Updated = DateTime.Now
-                },
-                new News
-                {
-                    Id = 2,
-                    Title = "Ekonomi Haberi 1",
-                    Content = "Ekonomiyle ilgili haber 1.",
-                    PublishedDate = DateTime.Now,
-                    CategoryId = 2,
-                    AuthorId = 2,
-                    IsActive = true,
-                    Created = DateTime.Now,
-                    Updated = DateTime.Now
-                }
-            );
+                context.Users.AddRange(
+                    new User
+                    {
+                        FullName = "Admin",
+                        UserName = "admin",
+                        Email = "admin@haber.com",
+                        Password = "123",
+                        Role = "Admin",
+                        PhotoPath = "/sbadmin/img/undraw_profile.svg", // User için doğru isim bu
+                        CreatedDate = DateTime.Now
+                    },
+                    new User
+                    {
+                        FullName = "Ahmet Yazar",
+                        UserName = "ahmet",
+                        Email = "ahmet@haber.com",
+                        Password = "123",
+                        Role = "Writer",
+                        PhotoPath = "/sbadmin/img/undraw_profile_1.svg",
+                        Biography = "Teknoloji Yazarı",
+                        CreatedDate = DateTime.Now
+                    }
+                );
+                context.SaveChanges();
+            }
         }
     }
 }

@@ -1,105 +1,85 @@
-﻿using AspNetCoreHero.ToastNotification.Abstractions;
-using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.SqlServer.Server;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using vizehaber.Models;
 using vizehaber.Repositories;
-using vizehaber.ViewModels;
 
 namespace vizehaber.Controllers
 {
-   // [Authorize(Roles = "Admin")] // Sadece admin kullanıcılar erişebilir. Normal kullanıcı veya yazar girmeye çalışırsa engellenir.
-
     public class CategoryController : Controller
     {
-        private readonly CategoryRepository _categoryRepository;
-        private readonly NewsRepository _newsRepository;
-        private readonly INotyfService _notyf;
-        private readonly IMapper _mapper; //Category-CategoryModel dönüşümleri için AutoMapper kullanılıyor.
+        // ARTIK GENERIC REPOSITORY KULLANIYORUZ
+        private readonly IRepository<Category> _categoryRepository;
 
-        public CategoryController(CategoryRepository categoryRepository, NewsRepository newsRepository, INotyfService notyf, IMapper mapper)
+        public CategoryController(IRepository<Category> categoryRepository)
         {
             _categoryRepository = categoryRepository;
-            _newsRepository = newsRepository;
-            _notyf = notyf;
-            _mapper = mapper;
         }
 
-        // Kategori Listesi
         public async Task<IActionResult> Index()
         {
+            // Tüm kategorileri getir
             var categories = await _categoryRepository.GetAllAsync();
-            var categoryModels = _mapper.Map<List<CategoryModel>>(categories);
-            return View(categoryModels);
+            return View(categories);
         }
 
-        // Kategori Ekleme Sayfası
-        public IActionResult Add()
+        // Kategori Ekleme Sayfası (GET)
+        public IActionResult Create()
         {
             return View();
         }
 
+        // Kategori Ekleme İşlemi (POST)
         [HttpPost]
-        public async Task<IActionResult> Add(CategoryModel model)
+        public async Task<IActionResult> Create(Category category)
         {
-            if (!ModelState.IsValid) return View(model);
-
-            var category = _mapper.Map<Category>(model);
-            category.Created = DateTime.Now;
-            category.Updated = DateTime.Now;
-            await _categoryRepository.AddAsync(category);
-
-            _notyf.Success("Kategori eklendi!");
-            return RedirectToAction("Index");
+            if (ModelState.IsValid)
+            {
+                await _categoryRepository.AddAsync(category);
+                return RedirectToAction("Index");
+            }
+            return View(category);
         }
 
-        // Kategori Güncelleme
-        public async Task<IActionResult> Update(int id)
+        // Düzenleme Sayfası (GET)
+        public async Task<IActionResult> Edit(int id)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
-            var categoryModel = _mapper.Map<CategoryModel>(category);
-            return View(categoryModel);
+            if (category == null)
+            {
+                return NotFound();
+            }
+            return View(category);
         }
 
+        // Düzenleme İşlemi (POST)
         [HttpPost]
-        public async Task<IActionResult> Update(CategoryModel model)
+        public async Task<IActionResult> Edit(Category category)
         {
-            if (!ModelState.IsValid) return View(model);
-
-            var category = await _categoryRepository.GetByIdAsync(model.Id);
-            category.Name = model.Name;
-            category.IsActive = model.IsActive;
-            category.Updated = DateTime.Now;
-            await _categoryRepository.UpdateAsync(category);
-
-            _notyf.Success("Kategori güncellendi!");
-            return RedirectToAction("Index");
+            if (ModelState.IsValid)
+            {
+                await _categoryRepository.UpdateAsync(category);
+                return RedirectToAction("Index");
+            }
+            return View(category);
         }
 
-        // Kategori Silme
+        // Silme Sayfası (GET)
         public async Task<IActionResult> Delete(int id)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
-            var categoryModel = _mapper.Map<CategoryModel>(category);
-            return View(categoryModel);
+            if (category == null)
+            {
+                return NotFound();
+            }
+            return View(category);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Delete(CategoryModel model)
+        // Silme İşlemi (POST - Onay)
+        [HttpPost, ActionName("Delete")]
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            // Eğer kategoride haber varsa silme
-            var news = await _newsRepository.GetAllAsync();
-            if (news.Count(n => n.CategoryId == model.Id) > 0)
-            {
-                _notyf.Error("Bu kategoride haberler mevcut, silinemez!");
-                return RedirectToAction("Index");
-            }
-
-            await _categoryRepository.DeleteAsync(model.Id);
-            _notyf.Success("Kategori silindi!");
+            await _categoryRepository.DeleteAsync(id);
             return RedirectToAction("Index");
         }
     }
 }
-

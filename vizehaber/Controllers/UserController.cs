@@ -1,85 +1,49 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using vizehaber.Models;
-using vizehaber.ViewModels;
-using System.Threading.Tasks;
+using vizehaber.Repositories;
 
 namespace vizehaber.Controllers
 {
+    // Bu Controller'a giriş yapmayan kimse giremesin
+    [Authorize]
     public class UserController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IRepository<User> _userRepository;
 
-        public UserController(AppDbContext context)
+        public UserController(IRepository<User> userRepository)
         {
-            _context = context;
+            _userRepository = userRepository;
         }
 
-        // GET: /User/Login
-        public IActionResult Login()
+        // 1. KULLANICI LİSTESİ (Sadece Admin görebilsin)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var users = await _userRepository.GetAllAsync();
+            return View(users);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Login(LoginViewModel model)
+        // 2. PROFİLİM SAYFASI (Herkes kendi profilini görsün)
+        public async Task<IActionResult> Profile()
         {
-            if (!ModelState.IsValid)
-                return View(model);
+            // Cookie'den giriş yapan kullanıcının ID'sini al
+            var userIdString = User.FindFirst("Id")?.Value;
 
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u =>
-                    (u.UserName == model.UserNameOrEmail || u.Email == model.UserNameOrEmail) &&
-                    u.Password == model.Password &&
-                    u.IsActive);
+            if (string.IsNullOrEmpty(userIdString)) return RedirectToAction("Login", "Account");
 
-            if (user == null)
-            {
-                ModelState.AddModelError("", "Kullanıcı adı/email veya şifre yanlış!");
-                return View(model);
-            }
+            int userId = int.Parse(userIdString);
 
-            HttpContext.Session.SetString("UserName", user.UserName);
-            HttpContext.Session.SetString("UserRole", user.Role);
-
-            return RedirectToAction("Index", "Home");
+            var user = await _userRepository.GetByIdAsync(userId);
+            return View(user);
         }
 
-        // GET: /User/Register
-        public IActionResult Register()
+        // 3. KULLANICI SİLME (Sadece Admin)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id)
         {
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Register(RegisterViewModel model)
-        {
-            if (!ModelState.IsValid)
-                return View(model);
-
-            var user = new User
-            {
-                FullName = model.FullName,
-                UserName = model.UserName,
-                Email = model.Email,
-                Password = model.Password,
-                Role = model.Role,
-                IsActive = true,
-                Created = DateTime.Now,
-                Updated = DateTime.Now
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction("Login");
-        }
-
-        // Logout
-        public IActionResult Logout()
-        {
-            HttpContext.Session.Clear();
-            return RedirectToAction("Login");
+            await _userRepository.DeleteAsync(id);
+            return RedirectToAction("Index");
         }
     }
 }

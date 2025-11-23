@@ -1,0 +1,65 @@
+﻿@model vizehaber.Models.News
+
+@{
+    ViewData["Title"] = "Yeni Haber Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Yeni Haber Oluştur</h6>
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="form-group">
+                <label>Haber Başlığı</label>
+                <input asp-for="Title" class="form-control" placeholder="Haber başlığını giriniz..." />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Kategori</label>
+                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.Categories">
+                    <option value="">-- Kategori Seçiniz --</option>
+                </select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Haber İçeriği</label>
+                <textarea asp-for="Content" class="form-control" rows="8" placeholder="Haberin detaylarını yazınız..."></textarea>
+                <span asp-validation-for="Content" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Kapak Fotoğrafı</label>
+                <input type="file" name="file" class="form-control-file" accept="image/*" />
+            </div>
+
+            <hr />
+
+            <button type="submit" class="btn btn-success btn-icon-split">
+                <span class="icon text-white-50">
+                    <i class="fas fa-check"></i>
+                </span>
+                <span class="text">Haberi Kaydet</span>
+            </button>
+
+            <a asp-action="Index" class="btn btn-secondary btn-icon-split ml-2">
+                <span class="icon text-white-50">
+                    <i class="fas fa-arrow-left"></i>
+                </span>
+                <span class="text">İptal</span>
+            </a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

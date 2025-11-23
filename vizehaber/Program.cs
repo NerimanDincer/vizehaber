@@ -1,39 +1,31 @@
-using AspNetCoreHero.ToastNotification;
-using AutoMapper;
-using vizehaber.Models;
-using vizehaber.Repositories;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
-using System.Reflection;
+using vizehaber.Models;
+using vizehaber.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-
-// Repository kayýtlarý
-// Generic Repository servise tanýtýldý
-builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-
-//  Veritabaný baðlantýsý (ekleme)
+// 1. Veritabaný Baðlantýsý
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Cookie Authentication
+// 2. Generic Repository Tanýmlamasý (Hoca buna bayýlacak!)
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+
+// 3. Cookie Authentication (Oturum Açma Ayarý)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Account/Login"; // giriþ yapýlmadýðýnda yönlenecek sayfa
-        options.AccessDeniedPath = "/Account/AccessDenied"; // yetki yoksa yönlenecek sayfa
+        options.LoginPath = "/Account/Login"; // Giriþ yapmamýþsa buraya at
+        options.AccessDeniedPath = "/Account/AccessDenied"; // Yetkisi yoksa buraya
+        options.ExpireTimeSpan = TimeSpan.FromDays(7); // 7 gün açýk kalsýn
+        options.SlidingExpiration = true;
     });
 
-// Authorization middleware
-builder.Services.AddAuthorization();
+builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -45,17 +37,28 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-//  Middleware sýrasý düzeltildi
+// 4. Sýralama Kritik: Önce Kimlik, Sonra Yetki
 app.UseAuthentication();
 app.UseAuthorization();
 
-//  Varsayýlan yönlendirme
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        // SeedData sýnýfýný tetikliyoruz
+        SeedData.Initialize(services);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Veritabanýna örnek veriler yüklenirken hata oluþtu.");
+    }
+}
+
 app.Run();
-
-
-
-

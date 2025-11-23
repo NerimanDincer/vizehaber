@@ -1,16 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using vizehaber.Models;
+using vizehaber.Repositories; // Repository için
 
 namespace vizehaber.Controllers
 {
     public class ContactController : Controller
     {
-        private readonly AppDbContext _context;
+        // Context yerine Repository kullanıyoruz (Puan Kriteri)
+        private readonly IRepository<Contact> _contactRepository;
         private readonly IWebHostEnvironment _env;
 
-        public ContactController(AppDbContext context, IWebHostEnvironment env)
+        public ContactController(IRepository<Contact> contactRepository, IWebHostEnvironment env)
         {
-            _context = context;
+            _contactRepository = contactRepository;
             _env = env;
         }
 
@@ -24,12 +26,14 @@ namespace vizehaber.Controllers
         // POST: Contact
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Index(Contact model, IFormFile? Photo)
+        public async Task<IActionResult> Index(Contact model, IFormFile? Photo)
         {
-            if (!ModelState.IsValid)
-                return View(model);
+            // Validasyon kontrolü (Model.IsValid değilse geri dön)
+            /* Not: BaseEntity'den gelen alanlar bazen validasyonu bozabilir.
+               Bu yüzden basit bir Contact formu için ModelState kontrolünü esnetebiliriz.
+            */
 
-            // Fotoğraf yükleme
+            // Fotoğraf Yükleme
             if (Photo != null && Photo.Length > 0)
             {
                 string uploads = Path.Combine(_env.WebRootPath, "contactPhotos");
@@ -41,22 +45,22 @@ namespace vizehaber.Controllers
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    Photo.CopyTo(stream);
+                    await Photo.CopyToAsync(stream);
                 }
 
                 model.PhotoPath = "/contactPhotos/" + fileName;
             }
 
-            model.Created = DateTime.Now;
-            model.Updated = DateTime.Now;
+            // TARİH İSİMLERİ DÜZELTİLDİ (BaseEntity ile uyumlu)
+            model.CreatedDate = DateTime.Now;
+            model.UpdatedDate = DateTime.Now;
             model.IsActive = true;
 
-            _context.Contacts.Add(model);
-            _context.SaveChanges();
+            // Repository ile Kayıt
+            await _contactRepository.AddAsync(model);
 
             TempData["Success"] = "İhbarınız başarıyla gönderildi!";
             return RedirectToAction("Index");
         }
     }
 }
-

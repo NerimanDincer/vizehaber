@@ -1,13 +1,13 @@
-﻿// baseentity tüm modellerin temel sınıfıs
-
-namespace vizehaber.Models
+﻿namespace vizehaber.Models
 {
     public class BaseEntity
     {
-        public int Id { get; set; }  //primary key
-        public bool IsActive { get; set; } //aktif mi değil mi
+        public int Id { get; set; }
 
-        public DateTime Created { get; set; } //oluşturulma tarihi
-        public DateTime Updated { get; set; } //güncellenme tarihis
+        
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        public DateTime UpdatedDate { get; set; } = DateTime.Now;
+        public bool IsActive { get; set; } = true;
     }
 }
