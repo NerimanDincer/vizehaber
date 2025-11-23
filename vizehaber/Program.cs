@@ -13,8 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // Repository kayýtlarý
-builder.Services.AddScoped<CategoryRepository>();
-builder.Services.AddScoped<NewsRepository>();
+// Generic Repository servise tanýtýldý
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 //  Veritabaný baðlantýsý (ekleme)
 builder.Services.AddDbContext<AppDbContext>(options =>
