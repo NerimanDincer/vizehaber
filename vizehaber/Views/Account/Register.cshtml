@@ -1,38 +1,150 @@
 ﻿@model vizehaber.ViewModels.RegisterViewModel
+
 @{
-    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Kayıt Ol";
+    Layout = null;
 }
 
-<h3>Kayıt Ol</h3>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Kayıt Ol - Dincer Haber</title>
 
-<form asp-action="Register" method="post">
-    <div class="mb-2">
-        <label asp-for="FullName"></label>
-        <input asp-for="FullName" class="form-control" />
-        <span asp-validation-for="FullName" class="text-danger"></span>
-    </div>
-    <div class="mb-2">
-        <label asp-for="UserName"></label>
-        <input asp-for="UserName" class="form-control" />
-        <span asp-validation-for="UserName" class="text-danger"></span>
-    </div>
-    <div class="mb-2">
-        <label asp-for="Password"></label>
-        <input asp-for="Password" type="password" class="form-control" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
-    <div class="mb-2">
-        <label asp-for="Role"></label>
-        <select asp-for="Role" class="form-control">
-            <option value="Admin">Admin</option>
-            <option value="Writer">Yazar</option>
-            <option value="User">Kullanıcı</option>
-        </select>
-        <span asp-validation-for="Role" class="text-danger"></span>
-    </div>
-    <button type="submit" class="btn btn-success">Kayıt Ol</button>
-</form>
+    <link href="~/sbadmin/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+    <link href="~/sbadmin/css/sb-admin-2.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #1c1e21 0%, #29323c 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-login {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .logo-circle {
+            width: 80px;
+            height: 80px;
+            background-color: #1cc88a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+            color: white;
+            font-size: 35px;
+            box-shadow: 0 4px 10px rgba(28, 200, 138, 0.5);
+        }
+
+        .form-control-user {
+            border-radius: 50px;
+            padding: 1.5rem 1.5rem;
+        }
+
+        .btn-login {
+            border-radius: 50px;
+            padding: 0.75rem 1rem;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-5 col-lg-6 col-md-8">
+                <div class="card card-login o-hidden border-0 shadow-lg my-5">
+                    <div class="card-body p-0">
+                        <div class="p-5">
+
+                            <div class="text-center">
+                                <div class="logo-circle">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <h1 class="h4 text-gray-900 mb-4 font-weight-bold">Aramıza Katılın!</h1>
+                            </div>
+
+                            <form class="user" asp-action="Register" method="post">
+
+                                <div asp-validation-summary="ModelOnly" class="text-danger text-center mb-3"></div>
+
+                                <div class="form-group">
+                                    <input asp-for="FullName" class="form-control form-control-user" placeholder="Adınız Soyadınız">
+                                    <span asp-validation-for="FullName" class="text-danger ml-3 small"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <input asp-for="UserName" class="form-control form-control-user" placeholder="Kullanıcı Adı">
+                                    <span asp-validation-for="UserName" class="text-danger ml-3 small"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <input asp-for="Email" type="email" class="form-control form-control-user" placeholder="E-posta Adresi">
+                                    <span asp-validation-for="Email" class="text-danger ml-3 small"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <input type="password" asp-for="Password" class="form-control form-control-user" placeholder="Şifre">
+                                    <span asp-validation-for="Password" class="text-danger ml-3 small"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <input type="password" asp-for="ConfirmPassword" class="form-control form-control-user"
+                                           placeholder="Şifre Tekrar">
+                                    <span asp-validation-for="ConfirmPassword" class="text-danger ml-3 small"></span>
+                                </div>
+
+
+                                <button type="submit" class="btn btn-success btn-user btn-block btn-login">
+                                    HESAP OLUŞTUR
+                                </button>
+                            </form>
+
+                            <hr>
+                            <div class="text-center">
+                                <a class="small font-weight-bold text-secondary" asp-action="Login">
+                                    Zaten hesabın var mı? <span class="text-success">Giriş Yap!</span>
+                                </a>
+                            </div>
+                            <div class="text-center mt-2">
+                                <a class="small text-gray-500" asp-controller="Home" asp-action="Index">
+                                    <i class="fas fa-arrow-left"></i> Siteye Geri Dön
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/sbadmin/vendor/jquery/jquery.min.js"></script>
+    <script src="~/sbadmin/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/sbadmin/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="~/sbadmin/js/sb-admin-2.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+
+    @await Component.InvokeAsync("Notyf")
+
+</body>
+</html>

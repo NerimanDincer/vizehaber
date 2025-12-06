@@ -1,0 +1,47 @@
+﻿@model vizehaber.Models.User
+@{
+    ViewData["Title"] = "Profili Düzenle"; Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Profil Bilgilerini Güncelle</h6>
+    </div>
+    <div class="card-body">
+        <form asp-action="EditProfile" method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="Id" />
+
+            <div class="form-group">
+                <label>Ad Soyad</label>
+                <input asp-for="FullName" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label>Kullanıcı Adı</label>
+                <input asp-for="UserName" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label>E-posta</label>
+                <input asp-for="Email" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label>Biyografi</label>
+                <textarea asp-for="Biography" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Profil Fotoğrafı</label>
+                @if (!string.IsNullOrEmpty(Model.PhotoPath))
+                {
+                    <div class="mb-2"><img src="@Model.PhotoPath" width="80" class="rounded-circle" /></div>
+                }
+                <input type="file" name="file" class="form-control-file" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Güncelle</button>
+            <a asp-action="Profile" class="btn btn-secondary">İptal</a>
+        </form>
+    </div>
+</div>

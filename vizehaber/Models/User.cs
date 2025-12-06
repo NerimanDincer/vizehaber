@@ -12,5 +12,6 @@
 
         // Bir Yazarın birden çok Haberi olabilir
         public ICollection<News> News { get; set; }
+        public ICollection<Comment> Comments { get; set; } // Bir Kullanıcının birden çok Yorumu olabilir
     }
 }

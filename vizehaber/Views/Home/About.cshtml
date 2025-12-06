@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "Hakkımızda";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="container">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Hakkımızda</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 text-center">
+                    <img src="~/sbadmin/img/undraw_profile.svg" class="img-fluid rounded-circle mb-3" style="width: 200px;">
+                </div>
+                <div class="col-md-8">
+                    <h3>Dincer Haber Portalı</h3>
+                    <p class="lead">Tarafsız, doğru ve hızlı haberciliğin adresi.</p>
+                    <p>
+                        2025 yılında kurulan Dincer Haber, Türkiye ve dünya gündemini en hızlı şekilde okuyucularına ulaştırmayı hedeflemektedir.
+                        Teknoloji, spor, magazin ve gündem kategorilerinde uzman yazar kadromuzla hizmetinizdeyiz.
+                    </p>
+                    <p>
+                        <strong>Kurucu:</strong> Neriman Dinçer<br>
+                        <strong>Kuruluş Tarihi:</strong> 2025
+                    </p>
+
+                    <div class="mt-4">
+                        <a asp-controller="Contact" asp-action="Index" class="btn btn-primary">Bize Ulaşın</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

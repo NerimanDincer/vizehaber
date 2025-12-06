@@ -1,5 +1,78 @@
-﻿@{
+﻿@model List<vizehaber.Models.News>
+
+@{
+    ViewData["Title"] = "Anasayfa";
+    // Burası Admin paneli değil, Site Vitrini.
+    // Eğer _Layout (Misafir) dosyan varsa onu kullan, yoksa _LayoutAdmin kalsın şimdilik.
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
-    ViewData["Title"] = "Home Page";
 }
 
+<div class="row">
+
+    @if (Model.Any())
+    {
+        @foreach (var item in Model)
+        {
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card shadow h-100">
+
+                    <a asp-controller="News" asp-action="Details" asp-route-id="@item.Id">
+                        @if (!string.IsNullOrEmpty(item.ImagePath))
+                        {
+                            <img class="card-img-top" src="@item.ImagePath" alt="@item.Title" style="height: 200px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <img class="card-img-top" src="/sbadmin/img/default_news.jpg" alt="Resim Yok" style="height: 200px; object-fit: cover;">
+                        }
+                    </a>
+
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            <a asp-controller="News" asp-action="Details" asp-route-id="@item.Id" class="text-dark font-weight-bold text-decoration-none">
+                                @item.Title
+                            </a>
+                        </h4>
+
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="far fa-clock"></i> @item.PublishedDate.ToString("dd.MM.yyyy")
+                            </small>
+                            <span class="badge badge-primary float-right">
+                                @(item.Category != null ? item.Category.Name : "Haber")
+                            </span>
+                        </div>
+
+                        <p class="card-text">
+                            @if (item.Content != null && item.Content.Length > 100)
+                            {
+                                @Html.Raw(item.Content.Substring(0, 100)+ "...")
+                            }
+                            else
+                            {
+                                @Html.Raw(item.Content)
+                            }
+                        </p>
+                    </div>
+
+                    <div class="card-footer bg-white border-top-0">
+                        <a asp-controller="News" asp-action="Details" asp-route-id="@item.Id" class="btn btn-primary btn-sm btn-block">
+                            Devamını Oku &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="alert alert-warning text-center p-5">
+                <h4><i class="fas fa-exclamation-circle"></i> Üzgünüz!</h4>
+                <p>Bu kategoride henüz haber eklenmemiş veya hiç haber yok.</p>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-secondary mt-3">Tüm Haberleri Gör</a>
+            </div>
+        </div>
+    }
+
+</div>

@@ -2,14 +2,14 @@
 @{
     ViewData["Title"] = "Kategoriler";
     // Eğer _LayoutAdmin dosyan yoksa burayı _Layout yapmalısın:
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 }
 
 @section CardHeader {
     <span>Kategoriler</span>
 }
 
-<a asp-action="Create" asp-controller="Category" class="btn btn-success mb-3">Yeni Kategori Ekle</a>
+<a asp-action="Add" asp-controller="Category" class="btn btn-success mb-3">Yeni Kategori Ekle</a>
 
 <div class="card shadow mb-4">
     <div class="card-body">
@@ -46,7 +46,7 @@
                             <td>@item.UpdatedDate.ToString("dd.MM.yyyy HH:mm")</td>
 
                             <td>
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary btn-sm">
+                                <a asp-action="Update" asp-route-id="@item.Id" class="btn btn-primary btn-sm">
                                     <i class="fas fa-edit"></i> Düzenle
                                 </a>
                                 <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">

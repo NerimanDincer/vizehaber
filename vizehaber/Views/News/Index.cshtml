@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Haber Listesi";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 }
 
 <div class="card shadow mb-4">
@@ -21,6 +21,7 @@
                         <th>Başlık</th>
                         <th>Kategori</th>
                         <th>Yazar</th>
+                        <th>Durum</th>
                         <th>Tarih</th>
                         <th>İşlemler</th>
                     </tr>
@@ -28,32 +29,48 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
-                        <tr>
+                        <tr class="@(item.IsActive ? "" : "bg-light text-muted")">
                             <td>
                                 @if (!string.IsNullOrEmpty(item.ImagePath))
                                 {
-                                    <img src="@item.ImagePath" width="100" height="60" style="object-fit:cover; border-radius:5px;" />
-                                }
-                                else
-                                {
-                                    <span>Resim Yok</span>
+                                    <img src="@item.ImagePath" width="80" style="border-radius: 5px; opacity: @(item.IsActive ? "1" : "0.5")" />
                                 }
                             </td>
                             <td>@item.Title</td>
                             <td>
-                                <span class="badge badge-info">
-                                    @(item.Category != null ? item.Category.Name : "Kategorisiz")
-                                </span>
+                                <span class="badge badge-secondary">@(item.Category != null ? item.Category.Name : "-")</span>
                             </td>
+                            <td>@(item.User != null ? item.User.FullName : "-")</td>
+
                             <td>
-                                @(item.User != null ? item.User.FullName : "Bilinmiyor")
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge badge-success">Yayında</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-danger">Pasif (Askıda)</span>
+                                }
                             </td>
-                            <td>@item.PublishedDate.ToString("dd.MM.yyyy HH:mm")</td>
+
+                            <td>@item.PublishedDate.ToString("dd.MM.yyyy")</td>
                             <td>
-                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm"
-                                   onclick="return confirm('Bu haberi silmek istediğinize emin misiniz?');">
-                                    <i class="fas fa-trash"></i> Sil
-                                </a>
+                                @if (item.IsActive)
+                                {
+                                    <a asp-action="ToggleStatus" asp-route-id="@item.Id" class="btn btn-secondary btn-sm" title="Yayından Kaldır">
+                                        <i class="fas fa-eye-slash"></i>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a asp-action="ToggleStatus" asp-route-id="@item.Id" class="btn btn-success btn-sm" title="Yayına Al">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                }
+
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm" onclick="return confirm('Tamamen silmek istiyor musunuz?')"><i class="fas fa-trash"></i></a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm"><i class="fas fa-info-circle"></i></a>
                             </td>
                         </tr>
                     }

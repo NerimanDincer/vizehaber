@@ -1,0 +1,154 @@
+﻿@model vizehaber.Models.News
+
+@{
+    ViewData["Title"] = Model.Title;
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="container-fluid">
+
+    <div class="card shadow mb-4">
+        @if (!string.IsNullOrEmpty(Model.ImagePath))
+        {
+            <img src="@Model.ImagePath" class="card-img-top" alt="@Model.Title" style="max-height: 400px; object-fit: cover;">
+        }
+        <div class="card-body">
+            <h2 class="font-weight-bold text-gray-900">@Model.Title</h2>
+
+            <div class="mb-3 text-muted">
+                <span class="mr-3">
+                    <i class="fas fa-calendar-alt"></i> @Model.PublishedDate.ToString("dd MMMM yyyy")
+                </span>
+                <span class="mr-3">
+                    <i class="fas fa-user"></i>
+                    @(Model.User != null ? Model.User.FullName : "Yazar Bilgisi Yok")
+                </span>
+                <span>
+                    <i class="fas fa-folder"></i>
+                    @(Model.Category != null ? Model.Category.Name : "Kategori Yok")
+                </span>
+            </div>
+
+            <hr>
+
+            <div class="card-text text-dark" style="font-size: 1.1rem; line-height: 1.8;">
+                @Html.Raw(Model.Content)
+            </div>
+
+            <div class="mt-4">
+                <a asp-action="Index" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-arrow-left"></i> Listeye Dön
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Yorumlar</h6>
+        </div>
+        <div class="card-body">
+
+            @if (User.Identity.IsAuthenticated)
+            {
+                <form id="commentForm">
+                    <input type="hidden" name="NewsId" value="@Model.Id" />
+                    <div class="form-group">
+                        <textarea class="form-control" name="Text" rows="3" placeholder="Yorumunuzu buraya yazın..."></textarea>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-sm" id="btnYorumYap">Gönder</button>
+                </form>
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    Yorum yapabilmek için <a asp-controller="Account" asp-action="Login">giriş yapmalısınız.</a>
+                </div>
+            }
+
+            <hr />
+
+            <div id="commentsList">
+
+                @if (Model.Comments != null && Model.Comments.Any())
+                {
+                    @foreach (var comment in Model.Comments)
+                    {
+                        <div class="media mb-4">
+                            <img class="d-flex mr-3 rounded-circle" src="/sbadmin/img/undraw_profile.svg" width="50" alt="">
+                            <div class="media-body">
+                                <h5 class="mt-0">
+                                    @(comment.User != null ? comment.User.FullName : "Kullanıcı")
+                                    <small class="text-muted">@comment.CreatedDate.ToString("dd.MM.yyyy HH:mm")</small>
+                                </h5>
+                                @comment.Text
+                            </div>
+                        </div>
+                        <hr>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted text-center" id="noCommentText">Henüz yorum yapılmamış. İlk yorumu sen yap!</p>
+                }
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+
+            $("#btnYorumYap").click(function() {
+
+                var yorumMetni = $("textarea[name='Text']").val();
+                var haberId = $("input[name='NewsId']").val();
+
+                if(yorumMetni.trim() == "") {
+                    alert("Lütfen bir yorum yazın.");
+                    return;
+                }
+
+                $.ajax({
+                    url: '/News/AddComment',
+                    type: 'POST',
+                    data: { newsId: haberId, text: yorumMetni },
+                    success: function(response) {
+                        if (response.success) {
+
+                            // Yorum kutusunu temizle
+                            $("textarea[name='Text']").val("");
+
+                            // "Henüz yorum yok" yazısı varsa kaldır
+                            $("#noCommentText").hide();
+
+                            // Yeni yorumu listeye ekle
+                            var yeniYorumHtml = `
+                                <div class="media mb-4">
+                                    <img class="d-flex mr-3 rounded-circle" src="/sbadmin/img/undraw_profile.svg" width="50" alt="">
+                                    <div class="media-body">
+                                        <h5 class="mt-0">${response.userName} <small class="text-muted">${response.date}</small></h5>
+                                        ${response.text}
+                                    </div>
+                                </div>
+                                <hr>`;
+
+                            $("#commentsList").prepend(yeniYorumHtml);
+
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function() {
+                        alert("Bir hata oluştu.");
+                    }
+                });
+
+            });
+
+        });
+    </script>
+}

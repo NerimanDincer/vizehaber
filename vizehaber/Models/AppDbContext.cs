@@ -12,8 +12,19 @@ namespace vizehaber.Models
         public DbSet<News> News { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Contact> Contacts { get; set; }
+        public DbSet<Comment> Comments { get; set; }
 
-        // O hatayı veren OnModelCreating kısmını SİLDİK.
-        // Çünkü veriyi zaten Program.cs üzerinden yüklüyoruz.
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // Yorum ile User arasındaki ilişkiyi "NoAction" yapıyoruz (Döngü hatasını çözer)
+            modelBuilder.Entity<Comment>()
+                .HasOne(c => c.User)
+                .WithMany(u => u.Comments) // User modelinde Comments listesi var demiştik
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.NoAction); // KİLİT NOKTA BURASI!
+
+            base.OnModelCreating(modelBuilder);
+        }
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using vizehaber.Models;
+using vizehaber.Services;
 
 namespace vizehaber.Models
 {
@@ -17,20 +18,21 @@ namespace vizehaber.Models
                 context.Users.AddRange(
                     new User
                     {
-                        FullName = "Admin",
-                        UserName = "admin",
-                        Email = "admin@haber.com",
-                        Password = "123",
-                        Role = "Admin",
-                        PhotoPath = "/sbadmin/img/undraw_profile.svg", // User için doğru isim bu
-                        CreatedDate = DateTime.Now
+                        FullName = "Neriman Dincer",
+                        UserName = "neriman",
+                        Email = "neriman@haber.com",
+                        Password = GeneralService.HashPassword("123"), // Şifren bu olacak
+                        Role = "Admin", // Kilit nokta burası: Rolü Admin
+                        PhotoPath = "/sbadmin/img/undraw_profile_3.svg", // Farklı bir avatar seçtim
+                        CreatedDate = DateTime.Now,
+                        IsActive = true
                     },
-                    new User
+                        new User
                     {
                         FullName = "Ahmet Yazar",
                         UserName = "ahmet",
                         Email = "ahmet@haber.com",
-                        Password = "123",
+                        Password = GeneralService.HashPassword("123"),
                         Role = "Writer",
                         PhotoPath = "/sbadmin/img/undraw_profile_1.svg",
                         Biography = "Teknoloji Yazarı",

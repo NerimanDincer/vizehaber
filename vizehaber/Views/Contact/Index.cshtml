@@ -2,49 +2,94 @@
 
 @{
     ViewData["Title"] = "İletişim / Haber İhbarı";
+    // Eğer _LayoutAdmin kullanıyorsak belirtelim, yoksa _ViewStart halleder.
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 }
 
-<h2>@ViewData["Title"]</h2>
+<div class="container-fluid">
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">
-        @TempData["Success"]
+    <h1 class="h3 mb-4 text-gray-800">Bize Ulaşın</h1>
+
+    <div class="row">
+        <div class="col-lg-8">
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">İletişim Formu</h6>
+                </div>
+                <div class="card-body">
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success">
+                            @TempData["Success"]
+                        </div>
+                    }
+
+                    <form asp-action="Index" method="post" enctype="multipart/form-data">
+
+                        <div class="form-group">
+                            <label for="Name">Adınız Soyadınız</label>
+                            <input asp-for="Name" class="form-control"
+                                   value="@(User.Identity.IsAuthenticated? User.Identity.Name : "")" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Email">E-posta Adresi</label>
+                            <input asp-for="Email" class="form-control" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Subject">Konu</label>
+                            <input asp-for="Subject" class="form-control" placeholder="Örn: Haber İhbarı" />
+                            <span asp-validation-for="Subject" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Message">Mesajınız / İhbar Detayı</label>
+                            <textarea asp-for="Message" class="form-control" rows="5"></textarea>
+                            <span asp-validation-for="Message" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Photo">Fotoğraf (Varsa)</label>
+                            <input type="file" name="Photo" class="form-control-file" accept="image/*" />
+                        </div>
+
+                        <hr>
+
+                        <button type="submit" class="btn btn-primary btn-icon-split">
+                            <span class="icon text-white-50">
+                                <i class="fas fa-paper-plane"></i>
+                            </span>
+                            <span class="text">Gönder</span>
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">İletişim Bilgileri</h6>
+                </div>
+                <div class="card-body">
+                    <p>Haber değeri taşıdığını düşündüğünüz olayları bize iletebilirsiniz.</p>
+                    <p><strong>E-posta:</strong> iletisim@dincerhaber.com</p>
+                    <p><strong>Telefon:</strong> 0212 123 45 67</p>
+                    <img src="~/sbadmin/img/undraw_posting_photo.svg" class="img-fluid mt-3">
+                </div>
+            </div>
+        </div>
+
     </div>
-}
-
-<form asp-action="Index" method="post" enctype="multipart/form-data">
-    <div class="mb-3">
-        <label for="Name" class="form-label">Adınız</label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label for="Email" class="form-label">Email</label>
-        <input asp-for="Email" class="form-control" />
-        <span asp-validation-for="Email" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label for="Subject" class="form-label">Konu</label>
-        <input asp-for="Subject" class="form-control" />
-        <span asp-validation-for="Subject" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label for="Message" class="form-label">Mesajınız</label>
-        <textarea asp-for="Message" class="form-control" rows="5"></textarea>
-        <span asp-validation-for="Message" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label for="Photo" class="form-label">Fotoğraf (isteğe bağlı)</label>
-        <input type="file" name="Photo" class="form-control" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Gönder</button>
-</form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

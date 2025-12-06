@@ -1,17 +1,18 @@
 ﻿@model vizehaber.Models.News
 
 @{
-    ViewData["Title"] = "Yeni Haber Ekle";
+    ViewData["Title"] = "Haberi Düzenle";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 }
 
 <div class="card shadow mb-4">
     <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Yeni Haber Oluştur</h6>
+        <h6 class="m-0 font-weight-bold text-primary">Haberi Düzenle</h6>
     </div>
     <div class="card-body">
 
-        <form asp-action="Create" method="post" enctype="multipart/form-data">
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="Id" />
 
             <div asp-validation-summary="All" class="text-danger mb-3 border p-3 rounded bg-light"></div>
 
@@ -34,6 +35,13 @@
 
             <div class="form-group">
                 <label>Kapak Fotoğrafı</label>
+                @if (!string.IsNullOrEmpty(Model.ImagePath))
+                {
+                    <div class="mb-2">
+                        <img src="@Model.ImagePath" width="100" />
+                        <small class="text-muted">(Mevcut Fotoğraf)</small>
+                    </div>
+                }
                 <input type="file" name="file" class="form-control-file" accept="image/*" />
             </div>
 
@@ -41,7 +49,7 @@
                 <span class="icon text-white-50">
                     <i class="fas fa-check"></i>
                 </span>
-                <span class="text">Haberi Kaydet</span>
+                <span class="text">Değişiklikleri Kaydet</span>
             </button>
 
             <a asp-action="Index" class="btn btn-secondary">İptal</a>

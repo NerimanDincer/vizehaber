@@ -1,0 +1,71 @@
+﻿@model List<vizehaber.Models.Contact>
+
+@{
+    ViewData["Title"] = "Gelen İhbarlar";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Gelen Mesajlar ve İhbarlar</h6>
+    </div>
+    <div class="card-body">
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Gönderen</th>
+                            <th>Konu</th>
+                            <th>Mesaj Özeti</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.CreatedDate.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>
+                                    <strong>@item.Name</strong><br>
+                                    <small class="text-muted">@item.Email</small>
+                                </td>
+                                <td>@item.Subject</td>
+                                <td>
+                                    @if (item.Message.Length > 50)
+                                    {
+                                        @item.Message.Substring(0, 50) <text>...</text>
+                                    }
+                                    else
+                                    {
+                                        @item.Message
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">
+                                        <i class="fas fa-eye"></i> Oku
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm"
+                                       onclick="return confirm('Bu mesajı silmek istiyor musunuz?')">
+                                        <i class="fas fa-trash"></i> Sil
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info text-center p-4">
+                <i class="fas fa-inbox fa-3x mb-3"></i>
+                <br>
+                Henüz gelen mesaj veya ihbar yok.
+            </div>
+        }
+    </div>
+</div>

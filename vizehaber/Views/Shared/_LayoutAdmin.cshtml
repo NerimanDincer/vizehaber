@@ -29,14 +29,14 @@
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-newspaper"></i>
                 </div>
-                <div class="sidebar-brand-text mx-3">DİNCERHABER</div>
+                <div class="sidebar-brand-text mx-3">DİNCER HABER</div>
             </a>
 
             <hr class="sidebar-divider my-0">
 
             <li class="nav-item active">
                 <a class="nav-link" asp-controller="Home" asp-action="Index">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <i class="fas fa-fw fa-home"></i>
                     <span>Anasayfa</span>
                 </a>
             </li>
@@ -44,31 +44,72 @@
             <hr class="sidebar-divider">
 
             <div class="sidebar-heading">
-                Yönetim
+                Kurumsal
             </div>
 
             <li class="nav-item">
-                <a class="nav-link" asp-controller="News" asp-action="Index">
-                    <i class="fas fa-fw fa-newspaper"></i>
-                    <span>Haberler</span>
+                <a class="nav-link" asp-controller="Home" asp-action="About">
+                    <i class="fas fa-fw fa-info-circle"></i>
+                    <span>Hakkımızda</span>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link" asp-controller="Category" asp-action="Index">
-                    <i class="fas fa-fw fa-list"></i>
-                    <span>Kategoriler</span>
+                <a class="nav-link" asp-controller="Home" asp-action="Authors">
+                    <i class="fas fa-fw fa-users"></i>
+                    <span>Yazarlarımız</span>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link" asp-controller="Authors" asp-action="Index">
-                    <i class="fas fa-fw fa-pen-nib"></i>
-                    <span>Yazarlar</span>
+                <a class="nav-link" asp-controller="Contact" asp-action="Index">
+                    <i class="fas fa-fw fa-envelope"></i>
+                    <span>İletişim / İhbar</span>
                 </a>
             </li>
 
-            <hr class="sidebar-divider d-none d-md-block">
+            <hr class="sidebar-divider">
+
+            <div class="sidebar-heading">
+                İçerik
+            </div>
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCategories"
+                   aria-expanded="true" aria-controls="collapseCategories">
+                    <i class="fas fa-fw fa-folder"></i>
+                    <span>Haber Kategorileri</span>
+                </a>
+                <div id="collapseCategories" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Tüm Kategoriler:</h6>
+                        @await Component.InvokeAsync("CategoryMenu")
+                    </div>
+                </div>
+            </li>
+
+            @if (User.IsInRole("Admin") || User.IsInRole("Writer"))
+            {
+                <hr class="sidebar-divider">
+                <div class="sidebar-heading">Yönetim</div>
+
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="News" asp-action="Index">
+                        <i class="fas fa-fw fa-pen"></i>
+                        <span>Haber İşlemleri</span>
+                    </a>
+                </li>
+            }
+
+            @if (User.IsInRole("Admin"))
+            {
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Admin" asp-action="Index">
+                        <i class="fas fa-fw fa-tachometer-alt"></i>
+                        <span>Admin Paneli</span>
+                    </a>
+                </li>
+            }
 
             <div class="text-center d-none d-md-inline">
                 <button class="rounded-circle border-0" id="sidebarToggle"></button>
@@ -85,12 +126,13 @@
                         <i class="fa fa-bars"></i>
                     </button>
 
-                    <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                    <form asp-controller="Home" asp-action="Index" method="get"
+                          class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
                         <div class="input-group">
-                            <input type="text" class="form-control bg-light border-0 small" placeholder="Haber ara..."
-                                   aria-label="Search" aria-describedby="basic-addon2">
+                            <input type="text" name="search" class="form-control bg-light border-0 small"
+                                   placeholder="Haberlerde ara..." aria-label="Search">
                             <div class="input-group-append">
-                                <button class="btn btn-primary" type="button">
+                                <button class="btn btn-primary" type="submit">
                                     <i class="fas fa-search fa-sm"></i>
                                 </button>
                             </div>
@@ -147,30 +189,10 @@
                             </div>
                         </li>
 
-                        <li class="nav-item dropdown no-arrow mx-1">
-                            <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
-                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-envelope fa-fw"></i>
-                                <span class="badge badge-danger badge-counter">7</span>
-                            </a>
-                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                 aria-labelledby="messagesDropdown">
-                                <h6 class="dropdown-header">
-                                    Mesajlar
-                                </h6>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="dropdown-list-image mr-3">
-                                        <img class="rounded-circle" src="~/sbadmin/img/undraw_profile_1.svg" alt="...">
-                                        <div class="status-indicator bg-success"></div>
-                                    </div>
-                                    <div class="font-weight-bold">
-                                        <div class="text-truncate">Merhaba! Haberleriniz harika.</div>
-                                        <div class="small text-gray-500">Ali Yılmaz · 58dk</div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item text-center small text-gray-500" href="#">Daha Fazla Mesaj Oku</a>
-                            </div>
-                        </li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            @await Component.InvokeAsync("UnreadMessages")
+                        }
 
                         <div class="topbar-divider d-none d-sm-block"></div>
 
@@ -199,7 +221,7 @@
 
                                 @if (User.Identity.IsAuthenticated)
                                 {
-                                    <a class="dropdown-item" href="#">
+                                    <a class="dropdown-item" asp-controller="User" asp-action="Profile">
                                         <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                         Profilim
                                     </a>
@@ -291,7 +313,8 @@
 
     <script src="~/sbadmin/vendor/chart.js/Chart.min.js"></script>
 
-    @RenderSection("Scripts", required: false)
+    @await Component.InvokeAsync("Notyf")
+    @await RenderSectionAsync("Scripts", required: false)
 
 </body>
 

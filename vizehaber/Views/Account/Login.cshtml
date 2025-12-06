@@ -1,24 +1,146 @@
 ﻿@model vizehaber.ViewModels.LoginViewModel
+
 @{
-    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Giriş Yap";
+    Layout = null;
 }
 
-<h3>Giriş Yap</h3>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Giriş Yap - Dincer Haber</title>
 
-<form asp-action="Login" method="post">
-    <div class="mb-2">
-        <label asp-for="UserNameOrEmail"></label>
-        <input asp-for="UserNameOrEmail" class="form-control" />
-        <span asp-validation-for="UserNameOrEmail" class="text-danger"></span>
-    </div>
-    <div class="mb-2">
-        <label asp-for="Password"></label>
-        <input asp-for="Password" type="password" class="form-control" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
-    <button type="submit" class="btn btn-primary">Giriş Yap</button>
-</form>
+    <link href="~/sbadmin/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+    <link href="~/sbadmin/css/sb-admin-2.min.css" rel="stylesheet">
+
+    <style>
+        /* Daha modern, koyu bir arka plan */
+        body {
+            background: linear-gradient(135deg, #1c1e21 0%, #29323c 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center; /* Dikey ortalama */
+        }
+
+        .card-login {
+            border: none;
+            border-radius: 1rem; /* Köşeleri daha yuvarlak */
+            box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-login {
+            font-size: 1.1rem;
+            font-weight: bold;
+            padding: 0.75rem 1rem;
+            border-radius: 50px; /* Hap şeklinde buton */
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+
+            .btn-login:hover {
+                transform: translateY(-2px); /* Üzerine gelince hafif yukarı kalksın */
+                box-shadow: 0 5px 15px rgba(78, 115, 223, 0.4);
+            }
+
+        .form-control-user {
+            border-radius: 50px; /* İnputlar da yuvarlak olsun */
+            padding: 1.5rem 1.5rem; /* İçi ferah olsun */
+            font-size: 1rem;
+        }
+
+        .logo-circle {
+            width: 80px;
+            height: 80px;
+            background-color: #4e73df;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+            color: white;
+            font-size: 40px;
+            box-shadow: 0 4px 10px rgba(78, 115, 223, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="row justify-content-center">
+
+            <div class="col-xl-5 col-lg-6 col-md-8">
+
+                <div class="card card-login o-hidden border-0 shadow-lg my-5 animated--grow-in">
+                    <div class="card-body p-0">
+                        <div class="p-5">
+
+                            <div class="text-center">
+                                <div class="logo-circle">
+                                    <i class="fas fa-newspaper"></i>
+                                </div>
+                                <h1 class="h4 text-gray-900 mb-4 font-weight-bold">Tekrar Hoşgeldiniz!</h1>
+                                <p class="text-muted mb-4">Hesabınıza erişmek için lütfen bilgilerinizi girin.</p>
+                            </div>
+
+                            <form class="user" asp-action="Login" method="post">
+
+                                @if (ViewBag.Error != null)
+                                {
+                                    <div class="alert alert-danger text-center rounded-pill">
+                                        <i class="fas fa-exclamation-triangle mr-2"></i> @ViewBag.Error
+                                    </div>
+                                }
+
+                                <div asp-validation-summary="ModelOnly" class="text-danger text-center mb-3"></div>
+
+                                <div class="form-group">
+                                    <input asp-for="UserNameOrEmail" class="form-control form-control-user"
+                                           placeholder="Kullanıcı Adı veya E-posta...">
+                                    <span asp-validation-for="UserNameOrEmail" class="text-danger ml-3 small"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <input type="password" asp-for="Password" class="form-control form-control-user"
+                                           placeholder="Şifre">
+                                    <span asp-validation-for="Password" class="text-danger ml-3 small"></span>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-user btn-block btn-login">
+                                    GİRİŞ YAP
+                                </button>
+                            </form>
+
+                            <hr>
+
+                            <div class="text-center">
+                                <a class="small font-weight-bold" asp-action="Register">
+                                    Hesabın yok mu? <span class="text-primary">Hemen Kayıt Ol!</span>
+                                </a>
+                            </div>
+                            <div class="text-center mt-2">
+                                <a class="small text-secondary" asp-controller="Home" asp-action="Index">
+                                    <i class="fas fa-arrow-left"></i> Siteye Geri Dön
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="~/sbadmin/vendor/jquery/jquery.min.js"></script>
+    <script src="~/sbadmin/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/sbadmin/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="~/sbadmin/js/sb-admin-2.min.js"></script>
+
+</body>
+</html>

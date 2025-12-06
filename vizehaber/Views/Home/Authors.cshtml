@@ -1,0 +1,25 @@
+﻿@model List<vizehaber.Models.User>
+@{
+    ViewData["Title"] = "Yazarlarımız"; Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="container">
+    <h1 class="h3 mb-4 text-gray-800">Yazar Kadromuz</h1>
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-bottom-primary shadow h-100 py-2">
+                    <div class="card-body text-center">
+                        <img src="@(item.PhotoPath ?? "/sbadmin/img/undraw_profile.svg")" class="rounded-circle mb-3" width="80" height="80" style="object-fit:cover;">
+                        <h5 class="font-weight-bold text-gray-900">@item.FullName</h5>
+                        <p class="text-muted small">@item.Role</p>
+                        <p class="card-text text-left small">
+                            @(string.IsNullOrEmpty(item.Biography) ? "Henüz biyografi eklenmemiş." : item.Biography)
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

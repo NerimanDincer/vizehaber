@@ -27,5 +27,6 @@ namespace vizehaber.Models
         public User User { get; set; }
 
         public bool IsApproved { get; set; } = false;
+        public List<Comment>? Comments { get; set; }
     }
 }
