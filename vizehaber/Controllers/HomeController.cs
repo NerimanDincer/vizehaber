@@ -86,6 +86,11 @@ namespace vizehaber.Controllers
             return View();
         }
 
+        public IActionResult About()
+        {
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
@@ -94,10 +99,9 @@ namespace vizehaber.Controllers
 
         public async Task<IActionResult> Authors()
         {
-            // Rolü "Writer" veya "Admin" olanları getir
-            // (Bunun için IRepository<User> _userRepository tanımlı olmalı, sende zaten var)
+            
             var users = await _userRepository.GetAllAsync();
-            var authors = users.Where(x => x.Role == "Writer" || x.Role == "Admin").ToList();
+            var authors = users.Where(x => x.Role == "Writer").ToList();
 
             return View(authors);
         }

@@ -71,7 +71,7 @@ namespace vizehaber.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            _notyf.Information("Oturum kapatıldı.");
+            // _notyf.Information("Oturum kapatıldı.");
             return RedirectToAction("Login");
         }
 

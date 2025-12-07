@@ -111,9 +111,64 @@ namespace vizehaber.Controllers
 
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
-
-
             return RedirectToAction("Profile");
+        }
+        // --- KULLANICIYI ASKIYA AL / AKTİF ET (BAN SİSTEMİ) ---
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ToggleUserStatus(int id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null) return NotFound();
+
+            // Kendini banlamasın (Güvenlik)
+            if (user.UserName == User.Identity.Name)
+            {
+                _notyf.Warning("Kendinizi askıya alamazsınız!");
+                return RedirectToAction("Index");
+            }
+
+            user.IsActive = !user.IsActive; // Durumu tersine çevir
+            await _userRepository.UpdateAsync(user);
+
+            _notyf.Success(user.IsActive ? "Kullanıcı kilidi açıldı." : "Kullanıcı askıya alındı.");
+            return RedirectToAction("Index");
+        }
+
+        // --- KULLANICI DÜZENLEME SAYFASI (YETKİ VERME) - GET ---
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public async Task<IActionResult> EditUser(int id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null) return NotFound();
+            return View(user);
+        }
+
+        // --- KULLANICI DÜZENLEME İŞLEMİ - POST ---
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> EditUser(User model)
+        {
+            var user = await _userRepository.GetByIdAsync(model.Id);
+            if (user == null) return NotFound();
+
+            // Kendinin yetkisini değiştirmesin
+            if (user.UserName == User.Identity.Name && model.Role != "Admin")
+            {
+                _notyf.Error("Kendi admin yetkinizi alamazsınız!");
+                return View(user);
+            }
+
+            // Bilgileri Güncelle
+            user.FullName = model.FullName;
+            user.Email = model.Email;
+            user.UserName = model.UserName;
+            user.Role = model.Role; // Kritik nokta: Rolü değiştiriyoruz!
+            user.IsActive = model.IsActive;
+
+            await _userRepository.UpdateAsync(user);
+            _notyf.Success("Kullanıcı bilgileri ve yetkisi güncellendi.");
+            return RedirectToAction("Index");
         }
     }
 }

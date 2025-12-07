@@ -1,0 +1,81 @@
+﻿@model List<vizehaber.Models.Comment>
+
+@{
+    ViewData["Title"] = "Yorum Yönetimi";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Yorum Denetimi</h1>
+    <a asp-controller="Admin" asp-action="Index" class="btn btn-secondary btn-sm shadow-sm">
+        <i class="fas fa-arrow-left fa-sm text-white-50"></i> Panele Dön
+    </a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Yazar</th>
+                        <th>Yorum</th>
+                        <th>Haber</th>
+                        <th>Tarih</th>
+                        <th>Durum</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr class="@(item.IsActive ? "" : "table-danger text-muted")">
+                            <td>
+                                <strong>@(item.User?.FullName ?? "Bilinmiyor")</strong>
+                            </td>
+                            <td>
+                                @if (item.Text.Length > 50)
+                                {
+                                    @item.Text.Substring(0, 50)
+                                    <text>...</text>
+     }
+                                else
+                                {
+                                    @item.Text
+                                }
+                            </td>
+                            <td>
+                                <a asp-controller="News" asp-action="Details" asp-route-id="@item.NewsId" target="_blank">
+                                    @(item.News?.Title ?? "Silinmiş Haber")
+                                </a>
+                            </td>
+                            <td>@item.CreatedDate.ToString("dd.MM HH:mm")</td>
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge badge-success">Yayında</span>
+                                }
+                                else
+                                {
+
+                                    <span class="badge badge-danger">Gizli</span>
+                                }
+                            </td>
+                            <td>
+                                <a asp-action="ToggleStatus" asp-route-id="@item.Id" class="btn btn-sm @(item.IsActive ? "btn-secondary" : "btn-success")"
+                                   title="@(item.IsActive ? "Gizle" : "Yayınla")">
+                                    <i class="fas @(item.IsActive ? "fa-eye-slash" : "fa-eye")"></i>
+                                </a>
+
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm"
+                                   onclick="return confirm('Yorumu tamamen silmek istiyor musunuz?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

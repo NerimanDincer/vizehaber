@@ -101,8 +101,33 @@
                 </li>
             }
 
+
+
+
             @if (User.IsInRole("Admin"))
             {
+
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="User" asp-action="Index">
+                        <i class="fas fa-fw fa-users-cog"></i>
+                        <span>Kullanıcı Yönetimi</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Category" asp-action="Index">
+                        <i class="fas fa-fw fa-list"></i>
+                        <span>Kategori Yönetimi</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Comment" asp-action="Index">
+                        <i class="fas fa-fw fa-comments"></i>
+                        <span>Yorum Yönetimi</span>
+                    </a>
+                </li>
+
                 <li class="nav-item">
                     <a class="nav-link" asp-controller="Admin" asp-action="Index">
                         <i class="fas fa-fw fa-tachometer-alt"></i>
@@ -163,7 +188,7 @@
                             </div>
                         </li>
 
-                        <li class="nav-item dropdown no-arrow mx-1">
+                        @* <li class="nav-item dropdown no-arrow mx-1">
                             <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-bell fa-fw"></i>
@@ -187,7 +212,7 @@
                                 </a>
                                 <a class="dropdown-item text-center small text-gray-500" href="#">Tüm Bildirimleri Göster</a>
                             </div>
-                        </li>
+                        </li> *@
 
                         @if (User.IsInRole("Admin"))
                         {
@@ -225,7 +250,7 @@
                                         <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                         Profilim
                                     </a>
-                                    <a class="dropdown-item" href="#">
+                                    <a class="dropdown-item" asp-controller="User" asp-action="EditProfile">
                                         <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
                                         Ayarlar
                                     </a>
@@ -233,8 +258,8 @@
                                     @if (User.IsInRole("Admin"))
                                     {
                                         <a class="dropdown-item" asp-controller="Admin" asp-action="Index">
-                                            <i class="fas fa-tools fa-sm fa-fw mr-2 text-gray-400"></i>
-                                            Yönetici Paneli
+                                            <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                                            Admin Paneli
                                         </a>
                                     }
 

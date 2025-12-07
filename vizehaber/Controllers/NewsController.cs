@@ -210,18 +210,38 @@ namespace vizehaber.Controllers
             });
         }
 
-        // --- HABER DETAY (YORUMLARI DA GETİRECEK ŞEKİLDE DÜZELTİLDİ) ---
+        //  HABER DETAY
         [AllowAnonymous]
         public async Task<IActionResult> Details(int id)
         {
+            // 1. Haberi Getir
             var news = await _newsRepository.GetByIdAsync(id);
             if (news == null) return NotFound();
 
-            // Tüm yorumları çekip bu habere ait olanları filtreliyoruz
-            var allComments = await _commentRepository.GetAllAsync();
+            // 2. KATEGORİ BİLGİSİNİ DOLDUR (Manuel Include)
+            if (news.CategoryId != 0)
+            {
+                news.Category = await _categoryRepository.GetByIdAsync(news.CategoryId);
+            }
 
-            // Haberin yorumlarını içine dolduruyoruz ki View'da gözüksün
-            news.Comments = allComments.Where(x => x.NewsId == id).OrderByDescending(x => x.CreatedDate).ToList();
+            // 3. YAZAR BİLGİSİNİ DOLDUR (Manuel Include)
+            if (news.UserId != 0)
+            {
+                news.User = await _userRepository.GetByIdAsync(news.UserId);
+            }
+
+            // 4. YORUMLARI GETİR (Zaten yapmıştık ama garanti olsun)
+            var allComments = await _commentRepository.GetAllAsync();
+            var newsComments = allComments.Where(x => x.NewsId == id).OrderByDescending(x => x.CreatedDate).ToList();
+
+            // Yorumların yazarlarını da dolduralım ki "Kullanıcı" yazmasın, isim yazsın
+            var users = await _userRepository.GetAllAsync();
+            foreach (var comment in newsComments)
+            {
+                comment.User = users.FirstOrDefault(u => u.Id == comment.UserId);
+            }
+
+            news.Comments = newsComments;
 
             return View(news);
         }

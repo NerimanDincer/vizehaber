@@ -1,0 +1,130 @@
+﻿@{
+    ViewData["Title"] = "Admin Kontrol Paneli";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Yönetim Paneli</h1>
+
+    <a asp-controller="Admin" asp-action="GetReport" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+        <i class="fas fa-download fa-sm text-white-50"></i> Raporu İndir (Excel)
+    </a>
+</div>
+
+<div class="row">
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <a asp-controller="News" asp-action="Index" style="text-decoration: none; color: inherit;">
+            <div class="card border-left-primary shadow h-100 py-2 change-cursor">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Toplam Haber
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.NewsCount</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-newspaper fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <a asp-controller="Category" asp-action="Index" style="text-decoration: none; color: inherit;">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Kategoriler
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.CategoryCount</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <a asp-controller="User" asp-action="Index" style="text-decoration: none; color: inherit;">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Kullanıcılar
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.UserCount</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <a asp-controller="News" asp-action="Index" style="text-decoration: none; color: inherit;">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Yorumlar
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.CommentCount</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <a asp-controller="Contact" asp-action="Messages" style="text-decoration: none; color: inherit;">
+            <div class="card bg-info text-white shadow">
+                <div class="card-body">
+                    Gelen İhbar Kutusu
+                    <div class="text-white-50 small">Okumak için tıklayın &rarr;</div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Sistem Durumu</h6>
+            </div>
+            <div class="card-body">
+                <p>Hoşgeldin <strong>Admin</strong>! Yukarıdaki kutulara tıklayarak ilgili yönetim sayfalarına hızlıca ulaşabilirsin.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Kartların üzerine gelince fare el işareti olsun ve hafif büyüsün */
+    .card:hover {
+        transform: scale(1.02);
+        transition: transform 0.2s;
+        cursor: pointer;
+    }
+</style>
