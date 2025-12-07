@@ -105,8 +105,18 @@ namespace vizehaber.Controllers
             var news = await _newsRepository.GetByIdAsync(id);
             if (news == null) return NotFound();
 
+            int currentUserId = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+
+            // Eğer kullanıcı ADMIN DEĞİLSE ve Haberin Yazarı da KENDİSİ DEĞİLSE -> At dışarı!
+            if (!User.IsInRole("Admin") && news.UserId != currentUserId)
+            {
+                _notyf.Error("Bu haberi düzenleme yetkiniz yok! Sadece kendi haberlerinizi düzenleyebilirsiniz.");
+                return RedirectToAction("Index");
+            }
+
             var categories = await _categoryRepository.GetAllAsync();
             ViewBag.Categories = new SelectList(categories.Where(c => c.IsActive), "Id", "Name", news.CategoryId);
+
             return View(news);
         }
 
@@ -116,6 +126,16 @@ namespace vizehaber.Controllers
             var existingNews = await _newsRepository.GetByIdAsync(news.Id);
             if (existingNews == null) return NotFound();
 
+            // 🔥 GÜVENLİK KONTROLÜ (POST tarafında da şart!) 🔥
+            int currentUserId = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+
+            if (!User.IsInRole("Admin") && existingNews.UserId != currentUserId)
+            {
+                _notyf.Error("Yetkisiz işlem girişimi!");
+                return RedirectToAction("Index");
+            }
+
+            // Resim güncelleme (Aynen kalıyor)
             if (file != null && file.Length > 0)
             {
                 string folder = Path.Combine(_webHostEnvironment.WebRootPath, "newsPhotos");
@@ -128,6 +148,7 @@ namespace vizehaber.Controllers
                 existingNews.ImagePath = "/newsPhotos/" + fileName;
             }
 
+            // Alanları güncelle
             existingNews.Title = news.Title;
             existingNews.Content = news.Content;
             existingNews.CategoryId = news.CategoryId;
@@ -135,21 +156,47 @@ namespace vizehaber.Controllers
 
             await _newsRepository.UpdateAsync(existingNews);
             _notyf.Success("Haber güncellendi!");
+
             return RedirectToAction("Index");
         }
 
+        // --- SİLME (HARD DELETE) ---
         public async Task<IActionResult> Delete(int id)
         {
+            // Önce haberi bulalım ki sahibini kontrol edebilelim
+            var news = await _newsRepository.GetByIdAsync(id);
+            if (news == null) return NotFound();
+
+            // 🔥 GÜVENLİK KONTROLÜ 🔥
+            int currentUserId = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+
+            if (!User.IsInRole("Admin") && news.UserId != currentUserId)
+            {
+                _notyf.Error("Başkasına ait bir haberi silemezsiniz!");
+                return RedirectToAction("Index");
+            }
+
             await _newsRepository.DeleteAsync(id);
             _notyf.Error("Haber kalıcı olarak silindi.");
+
             return RedirectToAction("Index");
         }
 
+        // --- DURUM DEĞİŞTİR (ASIKIYA ALMA) ---
         [Authorize(Roles = "Admin,Writer")]
         public async Task<IActionResult> ToggleStatus(int id)
         {
             var news = await _newsRepository.GetByIdAsync(id);
             if (news == null) return NotFound();
+
+            // 🔥 GÜVENLİK KONTROLÜ 🔥
+            int currentUserId = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+
+            if (!User.IsInRole("Admin") && news.UserId != currentUserId)
+            {
+                _notyf.Error("Bu haberin durumunu değiştirme yetkiniz yok.");
+                return RedirectToAction("Index");
+            }
 
             news.IsActive = !news.IsActive;
             await _newsRepository.UpdateAsync(news);
