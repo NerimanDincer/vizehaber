@@ -105,5 +105,23 @@ namespace vizehaber.Controllers
 
             return View(authors);
         }
+        [HttpGet]
+        public async Task<IActionResult> AuthorDetail(int id)
+        {
+            // 1. Yazarı Bul
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null) return NotFound();
+
+            // 2. Yazarın Yazdığı Haberleri Bul (Bonus Özellik!)
+            var allNews = await _newsRepository.GetAllAsync();
+            var authorNews = allNews.Where(x => x.UserId == id && x.IsActive)
+                                    .OrderByDescending(x => x.PublishedDate)
+                                    .ToList();
+
+            // Haberleri User nesnesinin içine koyalım (Modelde ICollection<News> vardı)
+            user.News = authorNews;
+
+            return View(user);
+        }
     }
 }

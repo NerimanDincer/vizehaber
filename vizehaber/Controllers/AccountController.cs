@@ -39,6 +39,11 @@ namespace vizehaber.Controllers
 
             if (user != null)
             {
+                if (!user.IsActive)
+                {
+                    _notyf.Error("Hesabınız askıya alınmıştır. Giriş yapamazsınız.");
+                    return View(model);
+                }
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, user.FullName ?? ""),

@@ -149,25 +149,28 @@ namespace vizehaber.Controllers
         [HttpPost]
         public async Task<IActionResult> EditUser(User model)
         {
+            // 1. Veritabanındaki orijinal kullanıcıyı getir
             var user = await _userRepository.GetByIdAsync(model.Id);
             if (user == null) return NotFound();
 
-            // Kendinin yetkisini değiştirmesin
+            // 2. Güvenlik: Kendi yetkini değiştiremezsin
             if (user.UserName == User.Identity.Name && model.Role != "Admin")
             {
                 _notyf.Error("Kendi admin yetkinizi alamazsınız!");
                 return View(user);
             }
 
-            // Bilgileri Güncelle
-            user.FullName = model.FullName;
-            user.Email = model.Email;
-            user.UserName = model.UserName;
-            user.Role = model.Role; // Kritik nokta: Rolü değiştiriyoruz!
-            user.IsActive = model.IsActive;
+            // Sadece yetki ve aktiflik durumunu değiştiriyoruz.
+
+            user.Role = model.Role;       // Yetkiyi güncelle
+            user.IsActive = model.IsActive; // Durumu güncelle (Aktif/Pasif)
+
+            // Eğer ismini de değiştirmek istersen EditProfile kullanmalı.
+            // Admin panelinde sadece yetki yönetmek daha güvenlidir.
 
             await _userRepository.UpdateAsync(user);
-            _notyf.Success("Kullanıcı bilgileri ve yetkisi güncellendi.");
+
+            _notyf.Success("Kullanıcı yetkisi güncellendi.");
             return RedirectToAction("Index");
         }
     }

@@ -15,21 +15,21 @@
 
     <link href="~/sbadmin/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
-
     <link href="~/sbadmin/css/sb-admin-2.min.css" rel="stylesheet">
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+
     <style>
-        /* Daha modern, koyu bir arka plan */
         body {
             background: linear-gradient(135deg, #1c1e21 0%, #29323c 100%);
             height: 100vh;
             display: flex;
-            align-items: center; /* Dikey ortalama */
+            align-items: center;
         }
 
         .card-login {
             border: none;
-            border-radius: 1rem; /* Köşeleri daha yuvarlak */
+            border-radius: 1rem;
             box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.3);
         }
 
@@ -37,19 +37,19 @@
             font-size: 1.1rem;
             font-weight: bold;
             padding: 0.75rem 1rem;
-            border-radius: 50px; /* Hap şeklinde buton */
+            border-radius: 50px;
             letter-spacing: 1px;
             transition: all 0.3s;
         }
 
             .btn-login:hover {
-                transform: translateY(-2px); /* Üzerine gelince hafif yukarı kalksın */
+                transform: translateY(-2px);
                 box-shadow: 0 5px 15px rgba(78, 115, 223, 0.4);
             }
 
         .form-control-user {
-            border-radius: 50px; /* İnputlar da yuvarlak olsun */
-            padding: 1.5rem 1.5rem; /* İçi ferah olsun */
+            border-radius: 50px;
+            padding: 1.5rem 1.5rem;
             font-size: 1rem;
         }
 
@@ -73,10 +73,9 @@
 
     <div class="container">
         <div class="row justify-content-center">
-
             <div class="col-xl-5 col-lg-6 col-md-8">
 
-                <div class="card card-login o-hidden border-0 shadow-lg my-5 animated--grow-in">
+                <div class="card card-login o-hidden border-0 shadow-lg my-5">
                     <div class="card-body p-0">
                         <div class="p-5">
 
@@ -85,17 +84,9 @@
                                     <i class="fas fa-newspaper"></i>
                                 </div>
                                 <h1 class="h4 text-gray-900 mb-4 font-weight-bold">Tekrar Hoşgeldiniz!</h1>
-                                <p class="text-muted mb-4">Hesabınıza erişmek için lütfen bilgilerinizi girin.</p>
                             </div>
 
                             <form class="user" asp-action="Login" method="post">
-
-                                @if (ViewBag.Error != null)
-                                {
-                                    <div class="alert alert-danger text-center rounded-pill">
-                                        <i class="fas fa-exclamation-triangle mr-2"></i> @ViewBag.Error
-                                    </div>
-                                }
 
                                 <div asp-validation-summary="ModelOnly" class="text-danger text-center mb-3"></div>
 
@@ -141,6 +132,10 @@
     <script src="~/sbadmin/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="~/sbadmin/vendor/jquery-easing/jquery.easing.min.js"></script>
     <script src="~/sbadmin/js/sb-admin-2.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+
+    @await Component.InvokeAsync("Notyf")
 
 </body>
 </html>
