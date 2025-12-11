@@ -1,176 +1,148 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using AspNetCoreHero.ToastNotification.Abstractions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using vizehaber.Models;
-using vizehaber.Repositories;
-using AspNetCoreHero.ToastNotification.Abstractions;
+using vizehaber.ViewModels; // ViewModel klasörünü unutma
 
 namespace vizehaber.Controllers
 {
-    // Bu Controller'a giriş yapmayan kimse giremesin
-    [Authorize]
+    [Authorize] // Herkes profilini görebilsin ama...
     public class UserController : Controller
     {
-        private readonly IRepository<User> _userRepository;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly RoleManager<AppRole> _roleManager; // 🔥 Rol Yönetimi Eklendi
         private readonly INotyfService _notyf;
 
-        public UserController(IRepository<User> userRepository, INotyfService notyf) // EKLENDİ
+        public UserController(UserManager<AppUser> userManager,
+                              RoleManager<AppRole> roleManager, // Constructor'a eklendi
+                              INotyfService notyf)
         {
-            _userRepository = userRepository;
+            _userManager = userManager;
+            _roleManager = roleManager;
             _notyf = notyf;
         }
 
-        // 1. KULLANICI LİSTESİ (Sadece Admin görebilsin)
-        [Authorize(Roles = "Admin")]
+        // --- 1. KULLANICI LİSTESİ (ROLLERİYLE BERABER) ---
+        [Authorize(Roles = "Admin")] // Sadece Admin görebilir
         public async Task<IActionResult> Index()
         {
-            var users = await _userRepository.GetAllAsync();
-            return View(users);
+            var users = await _userManager.Users.ToListAsync();
+            var userListViewModel = new List<UserRoleViewModel>();
+
+            foreach (var user in users)
+            {
+                // Her kullanıcının rolünü çekiyoruz
+                var roles = await _userManager.GetRolesAsync(user);
+
+                userListViewModel.Add(new UserRoleViewModel
+                {
+                    Id = user.Id,
+                    FullName = user.FullName,
+                    Email = user.Email,
+                    SelectedRole = roles.FirstOrDefault() ?? "Rol Yok" // İlk rolü al, yoksa "Rol Yok" yaz
+                    // IsActive bilgisini ViewModel'e eklememiştik, gerekirse ekleriz 
+                    // ama şimdilik Id üzerinden işlem yapıyoruz.
+                });
+            }
+
+            return View(userListViewModel);
         }
 
-        // 2. PROFİLİM SAYFASI (Herkes kendi profilini görsün)
+        // --- 2. PROFİL SAYFASI (HATA 3 ÇÖZÜMÜ) ---
+        [HttpGet]
         public async Task<IActionResult> Profile()
         {
-            // Cookie'den giriş yapan kullanıcının ID'sini al
-            var userIdString = User.FindFirst("Id")?.Value;
+            // Giriş yapan kullanıcıyı bul
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login", "Account");
 
-            if (string.IsNullOrEmpty(userIdString)) return RedirectToAction("Login", "Account");
-
-            int userId = int.Parse(userIdString);
-
-            var user = await _userRepository.GetByIdAsync(userId);
-            return View(user);
+            return View(user); // Views/User/Profile.cshtml sayfasına gider
         }
 
-        // 3. KULLANICI SİLME (Sadece Admin)
+        // --- 3. KULLANICI DÜZENLEME (GET) ---
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpGet]
+        public async Task<IActionResult> EditUser(string id)
         {
-            await _userRepository.DeleteAsync(id);
-            _notyf.Warning("Kullanıcı sistemden silindi."); // BİLDİRİM
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+
+            var model = new UserRoleViewModel
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email,
+                SelectedRole = userRoles.FirstOrDefault() ?? "User"
+            };
+            return View(model);
+        }
+
+        // --- 4. KULLANICI DÜZENLEME (POST) (HATA 1 ÇÖZÜMÜ) ---
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> EditUser(UserRoleViewModel model)
+        {
+            var user = await _userManager.FindByIdAsync(model.Id);
+            if (user == null) return NotFound();
+
+            // 🔥 HATA 1 ÇÖZÜMÜ: Rol veritabanında yoksa OLUŞTUR!
+            if (!await _roleManager.RoleExistsAsync(model.SelectedRole))
+            {
+                await _roleManager.CreateAsync(new AppRole { Name = model.SelectedRole });
+            }
+
+            // Mevcut rolleri sil
+            var userRoles = await _userManager.GetRolesAsync(user);
+            await _userManager.RemoveFromRolesAsync(user, userRoles);
+
+            // Yeni rolü ata
+            await _userManager.AddToRoleAsync(user, model.SelectedRole);
+
+            _notyf.Success($"{user.FullName} yetkisi '{model.SelectedRole}' oldu.");
             return RedirectToAction("Index");
         }
 
-        // PROFİL DÜZENLEME SAYFASI (GET)
-        [HttpGet]
-        public async Task<IActionResult> EditProfile()
-        {
-            var userIdString = User.FindFirst("Id")?.Value;
-            if (string.IsNullOrEmpty(userIdString)) return RedirectToAction("Login", "Account");
-
-            var user = await _userRepository.GetByIdAsync(int.Parse(userIdString));
-            return View(user);
-        }
-
-        // PROFİL GÜNCELLEME İŞLEMİ (POST)
-        [HttpPost]
-        public async Task<IActionResult> EditProfile(User model, IFormFile? file)
-        {
-            // Veritabanındaki orijinal kullanıcıyı çek
-            var user = await _userRepository.GetByIdAsync(model.Id);
-            if (user == null) return NotFound();
-
-            // Sadece izin verilen alanları güncelle
-            user.FullName = model.FullName;
-            user.Email = model.Email;
-            user.UserName = model.UserName;
-            user.Biography = model.Biography;
-            user.UpdatedDate = DateTime.Now;
-
-            // Fotoğraf güncelleme
-            if (file != null && file.Length > 0)
-            {
-                // ... (NewsController'daki resim yükleme kodunun aynısı buraya) ...
-                // Kısaca:
-                string folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/userPhotos");
-                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-                string fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
-                string path = Path.Combine(folder, fileName);
-                using (var stream = new FileStream(path, FileMode.Create)) { await file.CopyToAsync(stream); }
-
-                user.PhotoPath = "/userPhotos/" + fileName;
-            }
-
-            // Şifre değiştirme istenirse buraya eklenebilir ama şimdilik kalsın.
-
-            await _userRepository.UpdateAsync(user);
-
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.FullName ?? ""),
-                new Claim(ClaimTypes.NameIdentifier, user.UserName ?? ""),
-                new Claim(ClaimTypes.Role, user.Role ?? "User"),
-                new Claim("Id", user.Id.ToString()),
-                new Claim("PhotoPath", user.PhotoPath ?? "/sbadmin/img/undraw_profile.svg")
-            };
-
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var authProperties = new AuthenticationProperties { IsPersistent = true, ExpiresUtc = DateTime.UtcNow.AddDays(7) };
-
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
-            return RedirectToAction("Profile");
-        }
-        // --- KULLANICIYI ASKIYA AL / AKTİF ET (BAN SİSTEMİ) ---
+        // --- 5. KULLANICIYI AKTİF/PASİF YAP ---
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ToggleUserStatus(int id)
+        public async Task<IActionResult> ToggleUserStatus(string id)
         {
-            var user = await _userRepository.GetByIdAsync(id);
+            var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
 
-            // Kendini banlamasın (Güvenlik)
-            if (user.UserName == User.Identity.Name)
+            if (User.Identity.Name == user.UserName)
             {
                 _notyf.Warning("Kendinizi askıya alamazsınız!");
                 return RedirectToAction("Index");
             }
 
-            user.IsActive = !user.IsActive; // Durumu tersine çevir
-            await _userRepository.UpdateAsync(user);
+            user.IsActive = !user.IsActive;
+            await _userManager.UpdateAsync(user);
 
-            _notyf.Success(user.IsActive ? "Kullanıcı kilidi açıldı." : "Kullanıcı askıya alındı.");
+            if (user.IsActive) _notyf.Success("Kilit açıldı.");
+            else _notyf.Warning("Kullanıcı askıya alındı.");
+
             return RedirectToAction("Index");
         }
 
-        // --- KULLANICI DÜZENLEME SAYFASI (YETKİ VERME) - GET ---
+        // --- 6. SİLME ---
         [Authorize(Roles = "Admin")]
-        [HttpGet]
-        public async Task<IActionResult> EditUser(int id)
+        public async Task<IActionResult> Delete(string id)
         {
-            var user = await _userRepository.GetByIdAsync(id);
-            if (user == null) return NotFound();
-            return View(user);
-        }
-
-        // --- KULLANICI DÜZENLEME İŞLEMİ - POST ---
-        [Authorize(Roles = "Admin")]
-        [HttpPost]
-        public async Task<IActionResult> EditUser(User model)
-        {
-            // 1. Veritabanındaki orijinal kullanıcıyı getir
-            var user = await _userRepository.GetByIdAsync(model.Id);
+            var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
 
-            // 2. Güvenlik: Kendi yetkini değiştiremezsin
-            if (user.UserName == User.Identity.Name && model.Role != "Admin")
+            if (User.Identity.Name == user.UserName)
             {
-                _notyf.Error("Kendi admin yetkinizi alamazsınız!");
-                return View(user);
+                _notyf.Error("Kendinizi silemezsiniz!");
+                return RedirectToAction("Index");
             }
 
-            // Sadece yetki ve aktiflik durumunu değiştiriyoruz.
-
-            user.Role = model.Role;       // Yetkiyi güncelle
-            user.IsActive = model.IsActive; // Durumu güncelle (Aktif/Pasif)
-
-            // Eğer ismini de değiştirmek istersen EditProfile kullanmalı.
-            // Admin panelinde sadece yetki yönetmek daha güvenlidir.
-
-            await _userRepository.UpdateAsync(user);
-
-            _notyf.Success("Kullanıcı yetkisi güncellendi.");
+            await _userManager.DeleteAsync(user);
+            _notyf.Success("Kullanıcı silindi.");
             return RedirectToAction("Index");
         }
     }

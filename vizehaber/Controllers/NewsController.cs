@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Security.Claims; // Identity için gerekli
 using vizehaber.Models;
 using vizehaber.Repositories;
 
@@ -13,14 +14,14 @@ namespace vizehaber.Controllers
         private readonly IRepository<News> _newsRepository;
         private readonly IRepository<Category> _categoryRepository;
         private readonly IRepository<Comment> _commentRepository;
-        private readonly IRepository<User> _userRepository;
+        private readonly IRepository<AppUser> _userRepository; // Adını düzelttik
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly INotyfService _notyf;
 
         public NewsController(IRepository<News> newsRepository,
                               IRepository<Category> categoryRepository,
                               IRepository<Comment> commentRepository,
-                              IRepository<User> userRepository,
+                              IRepository<AppUser> userRepository,
                               IWebHostEnvironment webHostEnvironment,
                               INotyfService notyf)
         {
@@ -41,10 +42,10 @@ namespace vizehaber.Controllers
             foreach (var item in newsList)
             {
                 item.Category = categories.FirstOrDefault(c => c.Id == item.CategoryId);
-                item.User = users.FirstOrDefault(u => u.Id == item.UserId);
+                // ID eşleşmesi (String olduğu için == yeterli)
+                item.AppUser = users.FirstOrDefault(u => u.Id == item.AppUserId);
             }
 
-            // Admin panelinde hepsi görünsün (Aktif/Pasif fark etmez)
             return View(newsList.OrderByDescending(x => x.PublishedDate).ToList());
         }
 
@@ -77,15 +78,18 @@ namespace vizehaber.Controllers
                 news.ImagePath = "/sbadmin/img/undraw_posting_photo.svg";
             }
 
-            var userIdString = User.FindFirst("Id")?.Value;
-            if (!string.IsNullOrEmpty(userIdString)) news.UserId = int.Parse(userIdString);
+            // --- ID ALMA KISMI (String olarak alıyoruz) ---
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(userId)) news.AppUserId = userId;
 
             news.PublishedDate = DateTime.Now;
             news.IsActive = true;
 
+            // Model Validation Hatalarını Temizle
             ModelState.Remove("Category");
-            ModelState.Remove("User");
+            ModelState.Remove("AppUser");
             ModelState.Remove("Comments");
+            ModelState.Remove("AppUserId");
 
             if (ModelState.IsValid)
             {
@@ -105,12 +109,13 @@ namespace vizehaber.Controllers
             var news = await _newsRepository.GetByIdAsync(id);
             if (news == null) return NotFound();
 
-            int currentUserId = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+            // Giriş yapan kullanıcının ID'si (String)
+            string currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Eğer kullanıcı ADMIN DEĞİLSE ve Haberin Yazarı da KENDİSİ DEĞİLSE -> At dışarı!
-            if (!User.IsInRole("Admin") && news.UserId != currentUserId)
+            // Yetki Kontrolü
+            if (!User.IsInRole("Admin") && news.AppUserId != currentUserId)
             {
-                _notyf.Error("Bu haberi düzenleme yetkiniz yok! Sadece kendi haberlerinizi düzenleyebilirsiniz.");
+                _notyf.Error("Bu haberi düzenleme yetkiniz yok!");
                 return RedirectToAction("Index");
             }
 
@@ -126,19 +131,21 @@ namespace vizehaber.Controllers
             var existingNews = await _newsRepository.GetByIdAsync(news.Id);
             if (existingNews == null) return NotFound();
 
-            // 🔥 GÜVENLİK KONTROLÜ (POST tarafında da şart!) 🔥
-            int currentUserId = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+            string currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (!User.IsInRole("Admin") && existingNews.UserId != currentUserId)
+            if (!User.IsInRole("Admin") && existingNews.AppUserId != currentUserId)
             {
-                _notyf.Error("Yetkisiz işlem girişimi!");
+                _notyf.Error("Yetkisiz işlem!");
                 return RedirectToAction("Index");
             }
 
-            // Resim güncelleme (Aynen kalıyor)
+            // --- RESİM GÜNCELLEME KISMI (Senin kodun) ---
             if (file != null && file.Length > 0)
             {
                 string folder = Path.Combine(_webHostEnvironment.WebRootPath, "newsPhotos");
+                // Klasör yoksa oluştur (Garanti olsun)
+                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
                 string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
                 string filePath = Path.Combine(folder, fileName);
                 using (var stream = new FileStream(filePath, FileMode.Create))
@@ -148,82 +155,84 @@ namespace vizehaber.Controllers
                 existingNews.ImagePath = "/newsPhotos/" + fileName;
             }
 
-            // Alanları güncelle
+            // 🔥🔥🔥 EKLEMEN GEREKEN YER BURASI 🔥🔥🔥
+
+            // 1. Validasyon Hatalarını Temizle
+            ModelState.Remove("Category");
+            ModelState.Remove("AppUser");
+            ModelState.Remove("Comments");
+            ModelState.Remove("AppUserId"); // <--- "AppUserId required" hatasını bu çözer!
+
+            // 2. Metin Alanlarını Güncelle (Formdan gelen yeni verileri eskisinin üzerine yaz)
             existingNews.Title = news.Title;
             existingNews.Content = news.Content;
             existingNews.CategoryId = news.CategoryId;
             existingNews.UpdatedDate = DateTime.Now;
 
+            // 3. Veritabanına Kaydet
             await _newsRepository.UpdateAsync(existingNews);
-            _notyf.Success("Haber güncellendi!");
 
+            _notyf.Success("Haber başarıyla güncellendi!");
             return RedirectToAction("Index");
         }
 
-        // --- SİLME (HARD DELETE) ---
         public async Task<IActionResult> Delete(int id)
         {
-            // Önce haberi bulalım ki sahibini kontrol edebilelim
             var news = await _newsRepository.GetByIdAsync(id);
             if (news == null) return NotFound();
 
-            // 🔥 GÜVENLİK KONTROLÜ 🔥
-            int currentUserId = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+            string currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (!User.IsInRole("Admin") && news.UserId != currentUserId)
+            if (!User.IsInRole("Admin") && news.AppUserId != currentUserId)
             {
                 _notyf.Error("Başkasına ait bir haberi silemezsiniz!");
                 return RedirectToAction("Index");
             }
 
             await _newsRepository.DeleteAsync(id);
-            _notyf.Error("Haber kalıcı olarak silindi.");
-
+            _notyf.Error("Haber silindi.");
             return RedirectToAction("Index");
         }
 
-        // --- DURUM DEĞİŞTİR (ASIKIYA ALMA) ---
         [Authorize(Roles = "Admin,Writer")]
         public async Task<IActionResult> ToggleStatus(int id)
         {
             var news = await _newsRepository.GetByIdAsync(id);
             if (news == null) return NotFound();
 
-            // 🔥 GÜVENLİK KONTROLÜ 🔥
-            int currentUserId = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+            string currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (!User.IsInRole("Admin") && news.UserId != currentUserId)
+            if (!User.IsInRole("Admin") && news.AppUserId != currentUserId)
             {
-                _notyf.Error("Bu haberin durumunu değiştirme yetkiniz yok.");
+                _notyf.Error("Yetkiniz yok.");
                 return RedirectToAction("Index");
             }
 
             news.IsActive = !news.IsActive;
             await _newsRepository.UpdateAsync(news);
 
-            if (news.IsActive) _notyf.Success("Haber yayına alındı.");
-            else _notyf.Warning("Haber askıya alındı.");
+            if (news.IsActive) _notyf.Success("Yayına alındı.");
+            else _notyf.Warning("Askıya alındı.");
 
             return RedirectToAction("Index");
         }
 
-        // --- AJAX İÇİN YORUM METODU ---
         [HttpPost]
         public async Task<IActionResult> AddComment(int newsId, string text)
         {
-            var userIdString = User.FindFirst("Id")?.Value;
-            if (string.IsNullOrEmpty(userIdString))
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
             {
                 return Json(new { success = false, message = "Lütfen giriş yapın." });
             }
 
-            var userFullName = User.Identity.Name;
+            string userName = User.Identity.Name;
 
             var comment = new Comment
             {
                 NewsId = newsId,
                 Text = text,
-                UserId = int.Parse(userIdString),
+                AppUserId = userId, // String ID ataması
                 CreatedDate = DateTime.Now,
                 IsActive = true
             };
@@ -233,13 +242,12 @@ namespace vizehaber.Controllers
             return Json(new
             {
                 success = true,
-                userName = userFullName,
+                userName = userName,
                 date = DateTime.Now.ToString("dd.MM.yyyy HH:mm"),
                 text = text
             });
         }
 
-        // --- HABER DETAY ---
         [AllowAnonymous]
         public async Task<IActionResult> Details(int id)
         {
@@ -249,8 +257,9 @@ namespace vizehaber.Controllers
             if (news.CategoryId != 0)
                 news.Category = await _categoryRepository.GetByIdAsync(news.CategoryId);
 
-            if (news.UserId != 0)
-                news.User = await _userRepository.GetByIdAsync(news.UserId);
+            // Null veya Boş değilse kullanıcıyı getir
+            if (!string.IsNullOrEmpty(news.AppUserId))
+                news.AppUser = await _userRepository.GetByIdAsync(news.AppUserId);
 
             var allComments = await _commentRepository.GetAllAsync();
             var newsComments = allComments.Where(x => x.NewsId == id).OrderByDescending(x => x.CreatedDate).ToList();
@@ -258,7 +267,7 @@ namespace vizehaber.Controllers
             var users = await _userRepository.GetAllAsync();
             foreach (var comment in newsComments)
             {
-                comment.User = users.FirstOrDefault(u => u.Id == comment.UserId);
+                comment.AppUser = users.FirstOrDefault(u => u.Id == comment.AppUserId);
             }
 
             news.Comments = newsComments;

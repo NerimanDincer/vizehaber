@@ -1,30 +1,46 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
+// Dosyan "Models" klasöründe olduğu için namespace'i buna eşitledim.
+// Böylece kafa karışıklığı olmaz.
 namespace vizehaber.Models
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<AppUser, AppRole, string>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
 
-        public DbSet<Category> Categories { get; set; }
         public DbSet<News> News { get; set; }
-        public DbSet<User> Users { get; set; }
-        public DbSet<Contact> Contacts { get; set; }
+        public DbSet<Category> Categories { get; set; }
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<Contact> Contacts { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        // 🔥 SQL CYCLE (KISIRDÖNGÜ) HATASINI ÇÖZEN KISIM 🔥
+        // AppDbContext.cs içindeki ilgili kısım:
+
+        protected override void OnModelCreating(ModelBuilder builder)
         {
-            // Yorum ile User arasındaki ilişkiyi "NoAction" yapıyoruz (Döngü hatasını çözer)
-            modelBuilder.Entity<Comment>()
-                .HasOne(c => c.User)
-                .WithMany(u => u.Comments) // User modelinde Comments listesi var demiştik
-                .HasForeignKey(c => c.UserId)
-                .OnDelete(DeleteBehavior.NoAction); // KİLİT NOKTA BURASI!
+            base.OnModelCreating(builder);
 
-            base.OnModelCreating(modelBuilder);
+            // Haber - Kategori İlişkisi
+            builder.Entity<News>()
+                .HasOne(n => n.Category)
+                .WithMany(c => c.NewsList) // 👈 DİKKAT: Burayı 'News' yerine 'NewsList' yaptık!
+                .HasForeignKey(n => n.CategoryId);
+
+            // Haber - Kullanıcı İlişkisi
+            builder.Entity<News>()
+                .HasOne(n => n.AppUser)
+                .WithMany(u => u.News)
+                .HasForeignKey(n => n.AppUserId);
+
+            // Yorum - Kullanıcı İlişkisi (Kısırdöngü Çözümü)
+            builder.Entity<Comment>()
+                .HasOne(c => c.AppUser)
+                .WithMany(u => u.Comments)
+                .HasForeignKey(c => c.AppUserId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
-
     }
 }

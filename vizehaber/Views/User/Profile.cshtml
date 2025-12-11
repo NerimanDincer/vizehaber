@@ -1,9 +1,8 @@
-﻿@model vizehaber.Models.User
+﻿@model vizehaber.Models.AppUser
 
 @{
     ViewData["Title"] = "Profilim";
-    // Layout belirtmeye gerek yok, _ViewStart hallediyor ama garanti olsun dersen:
-    // Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 }
 
 <div class="container-fluid">
@@ -20,13 +19,15 @@
 
                     <div class="mb-4">
                         <img class="img-profile rounded-circle shadow-sm"
-                             src="@(Model.PhotoPath ?? "/sbadmin/img/undraw_profile.svg")"
+                             src="@(Model.PhotoUrl ?? "/sbadmin/img/undraw_profile.svg")"
                              style="width: 150px; height: 150px; object-fit: cover; border: 4px solid #f8f9fc;">
                     </div>
 
                     <h3 class="font-weight-bold text-gray-900">@Model.FullName</h3>
-                    <p class="text-muted mb-3">@@@Model.UserName</p> <div class="mb-4">
-                        @if (Model.Role == "Admin")
+                    <p class="text-muted mb-3">@@@Model.UserName</p>
+
+                    <div class="mb-4">
+                        @* @if (Model.Role == "Admin")
                         {
                             <span class="badge badge-danger px-3 py-2">Yönetici (Admin)</span>
                         }
@@ -37,7 +38,8 @@
                         else
                         {
                             <span class="badge badge-secondary px-3 py-2">Okuyucu</span>
-                        }
+                        } 
+                        *@
                     </div>
 
                     <hr>

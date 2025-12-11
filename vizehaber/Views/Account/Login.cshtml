@@ -7,135 +7,91 @@
 
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Giriş Yap - Dincer Haber</title>
+    <title>VizeHaber - Giriş Yap</title>
 
-    <link href="~/sbadmin/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
-    <link href="~/sbadmin/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="/sbadmin/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
-
-    <style>
-        body {
-            background: linear-gradient(135deg, #1c1e21 0%, #29323c 100%);
-            height: 100vh;
-            display: flex;
-            align-items: center;
-        }
-
-        .card-login {
-            border: none;
-            border-radius: 1rem;
-            box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.3);
-        }
-
-        .btn-login {
-            font-size: 1.1rem;
-            font-weight: bold;
-            padding: 0.75rem 1rem;
-            border-radius: 50px;
-            letter-spacing: 1px;
-            transition: all 0.3s;
-        }
-
-            .btn-login:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(78, 115, 223, 0.4);
-            }
-
-        .form-control-user {
-            border-radius: 50px;
-            padding: 1.5rem 1.5rem;
-            font-size: 1rem;
-        }
-
-        .logo-circle {
-            width: 80px;
-            height: 80px;
-            background-color: #4e73df;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px auto;
-            color: white;
-            font-size: 40px;
-            box-shadow: 0 4px 10px rgba(78, 115, 223, 0.5);
-        }
-    </style>
+    <link href="/sbadmin/css/sb-admin-2.min.css" rel="stylesheet">
 </head>
 
-<body>
+<body class="bg-gradient-primary">
 
     <div class="container">
+
         <div class="row justify-content-center">
-            <div class="col-xl-5 col-lg-6 col-md-8">
 
-                <div class="card card-login o-hidden border-0 shadow-lg my-5">
+            <div class="col-xl-10 col-lg-12 col-md-9">
+
+                <div class="card o-hidden border-0 shadow-lg my-5">
                     <div class="card-body p-0">
-                        <div class="p-5">
+                        <div class="row">
+                            <div class="col-lg-6 d-none d-lg-block bg-login-image" style="background-image: url('https://source.unsplash.com/Kz8nHVg_tGI/600x800');"></div>
+                            <div class="col-lg-6">
+                                <div class="p-5">
+                                    <div class="text-center">
+                                        <h1 class="h4 text-gray-900 mb-4">Tekrar Hoş Geldiniz!</h1>
+                                    </div>
 
-                            <div class="text-center">
-                                <div class="logo-circle">
-                                    <i class="fas fa-newspaper"></i>
+                                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                                    <form class="user" asp-action="Login" method="post">
+
+                                        <div class="form-group">
+                                            <input asp-for="Email" type="email" class="form-control form-control-user" placeholder="E-Posta Adresi">
+                                            <span asp-validation-for="Email" class="text-danger small pl-3"></span>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <input asp-for="Password" type="password" class="form-control form-control-user" placeholder="Şifre">
+                                            <span asp-validation-for="Password" class="text-danger small pl-3"></span>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <div class="custom-control custom-checkbox small">
+                                                <input type="checkbox" class="custom-control-input" asp-for="RememberMe">
+                                                <label class="custom-control-label" asp-for="RememberMe">Beni Hatırla</label>
+                                            </div>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-primary btn-user btn-block">
+                                            Giriş Yap
+                                        </button>
+
+                                        <hr>
+                                    </form>
+                                    <hr>
+                                    <div class="text-center">
+                                        <a class="small" asp-action="Register">Hesabın yok mu? Kayıt Ol!</a>
+                                    </div>
+                                    <div class="text-center">
+                                        <a class="small" asp-controller="Home" asp-action="Index">Anasayfaya Dön</a>
+                                    </div>
                                 </div>
-                                <h1 class="h4 text-gray-900 mb-4 font-weight-bold">Tekrar Hoşgeldiniz!</h1>
                             </div>
-
-                            <form class="user" asp-action="Login" method="post">
-
-                                <div asp-validation-summary="ModelOnly" class="text-danger text-center mb-3"></div>
-
-                                <div class="form-group">
-                                    <input asp-for="UserNameOrEmail" class="form-control form-control-user"
-                                           placeholder="Kullanıcı Adı veya E-posta...">
-                                    <span asp-validation-for="UserNameOrEmail" class="text-danger ml-3 small"></span>
-                                </div>
-
-                                <div class="form-group">
-                                    <input type="password" asp-for="Password" class="form-control form-control-user"
-                                           placeholder="Şifre">
-                                    <span asp-validation-for="Password" class="text-danger ml-3 small"></span>
-                                </div>
-
-                                <button type="submit" class="btn btn-primary btn-user btn-block btn-login">
-                                    GİRİŞ YAP
-                                </button>
-                            </form>
-
-                            <hr>
-
-                            <div class="text-center">
-                                <a class="small font-weight-bold" asp-action="Register">
-                                    Hesabın yok mu? <span class="text-primary">Hemen Kayıt Ol!</span>
-                                </a>
-                            </div>
-                            <div class="text-center mt-2">
-                                <a class="small text-secondary" asp-controller="Home" asp-action="Index">
-                                    <i class="fas fa-arrow-left"></i> Siteye Geri Dön
-                                </a>
-                            </div>
-
                         </div>
                     </div>
                 </div>
 
             </div>
+
         </div>
+
     </div>
 
-    <script src="~/sbadmin/vendor/jquery/jquery.min.js"></script>
-    <script src="~/sbadmin/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="~/sbadmin/vendor/jquery-easing/jquery.easing.min.js"></script>
-    <script src="~/sbadmin/js/sb-admin-2.min.js"></script>
+    <script src="/sbadmin/vendor/jquery/jquery.min.js"></script>
+    <script src="/sbadmin/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script src="/sbadmin/vendor/jquery-easing/jquery.easing.min.js"></script>
 
-    @await Component.InvokeAsync("Notyf")
+    <script src="/sbadmin/js/sb-admin-2.min.js"></script>
+
+    @await Html.PartialAsync("_ValidationScriptsPartial")
 
 </body>
 </html>

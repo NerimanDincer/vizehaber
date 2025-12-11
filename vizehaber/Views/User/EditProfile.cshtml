@@ -1,4 +1,4 @@
-﻿@model vizehaber.Models.User
+﻿@model vizehaber.Models.AppUser
 @{
     ViewData["Title"] = "Profili Düzenle"; Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 }
@@ -33,9 +33,9 @@
 
             <div class="form-group">
                 <label>Profil Fotoğrafı</label>
-                @if (!string.IsNullOrEmpty(Model.PhotoPath))
+                @if (!string.IsNullOrEmpty(Model.PhotoUrl))
                 {
-                    <div class="mb-2"><img src="@Model.PhotoPath" width="80" class="rounded-circle" /></div>
+                    <div class="mb-2"><img src="@Model.PhotoUrl" width="80" class="rounded-circle" /></div>
                 }
                 <input type="file" name="file" class="form-control-file" />
             </div>

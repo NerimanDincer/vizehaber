@@ -29,12 +29,12 @@
                 @Model.Message
             </div>
 
-            @if (!string.IsNullOrEmpty(Model.PhotoPath))
+            @if (!string.IsNullOrEmpty(Model.PhotoUrl))
             {
                 <hr>
                 <p class="font-weight-bold">Eklenen Fotoğraf:</p>
                 <div class="text-center">
-                    <img src="@Model.PhotoPath" class="img-fluid rounded shadow-sm" style="max-height: 500px;">
+                    <img src="@Model.PhotoUrl" class="img-fluid rounded shadow-sm" style="max-height: 500px;">
                 </div>
             }
 

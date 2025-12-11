@@ -18,6 +18,6 @@ namespace vizehaber.Models
         [Required(ErrorMessage = "Mesaj zorunludur")]
         public string Message { get; set; }
 
-        public string? PhotoPath { get; set; }
+        public string? PhotoUrl { get; set; }
     }
 }

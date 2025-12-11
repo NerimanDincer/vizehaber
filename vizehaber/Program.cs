@@ -1,48 +1,61 @@
-using AspNetCoreHero.ToastNotification; // 1. HATA BURADAYDI (Eksikti)
-using Microsoft.AspNetCore.Authentication.Cookies;
+ï»¿using AspNetCoreHero.ToastNotification;
+using Microsoft.AspNetCore.Identity; // ğŸ”¥ BU LAZIM
 using Microsoft.EntityFrameworkCore;
 using vizehaber.Models;
-using vizehaber.Repositories;
+using vizehaber.Repositories; // Data klasÃ¶rÃ¼ndeyse namespace'i ona gÃ¶re dÃ¼zelt
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- SERVİSLERİN EKLENMESİ ---
+// --- 1. SERVÄ°SLERÄ°N EKLENMESÄ° ---
 
 builder.Services.AddControllersWithViews();
 
-// 2. Veritabanı Bağlantısı
-// (Hocanın kodunda "sqlCon" yazıyor, sende "DefaultConnection" olabilir. appsettings.json dosyanı kontrol et)
+// --- 2. VERÄ°TABANI BAÄLANTISI ---
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
-// 3. Repository Yapısı (Bizimki Generic, daha pratik)
+// --- 3. ğŸ”¥ IDENTITY AYARLARI (Kritik Nokta) ---
+builder.Services.AddIdentity<AppUser, AppRole>(opt =>
+{
+    // Åifre Zorluk AyarlarÄ± (Hoca kolay girsin diye gevÅŸettik)
+    opt.Password.RequireDigit = false;           // Rakam zorunlu deÄŸil
+    opt.Password.RequireLowercase = false;       // KÃ¼Ã§Ã¼k harf zorunlu deÄŸil
+    opt.Password.RequireUppercase = false;       // BÃ¼yÃ¼k harf zorunlu deÄŸil
+    opt.Password.RequireNonAlphanumeric = false; // Ã–zel karakter (@, #) zorunlu deÄŸil
+    opt.Password.RequiredLength = 3;             // En az 3 karakter olsun yeter
+
+    // KullanÄ±cÄ± AyarlarÄ±
+    opt.User.RequireUniqueEmail = true;          // AynÄ± mailden 2 tane olmasÄ±n
+})
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
+
+// --- 4. COOKIE (Ã‡EREZ) AYARLARI ---
+// Identity, cookie iÅŸini kendi halleder ama biz yolunu gÃ¶steriyoruz
+builder.Services.ConfigureApplicationCookie(opt =>
+{
+    opt.LoginPath = "/Account/Login";        // GiriÅŸ yapmamÄ±ÅŸsa buraya at
+    opt.AccessDeniedPath = "/Account/AccessDenied"; // Yetkisi yoksa buraya at
+    opt.ExpireTimeSpan = TimeSpan.FromDays(7);      // 7 GÃ¼n hatÄ±rla
+    opt.SlidingExpiration = true;                   // Siteye girdikÃ§e sÃ¼reyi uzat
+});
+
+// --- 5. REPOSITORY YAPISI ---
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
-// 4. Bildirim Servisi (Notyf Ayarları - Hocanınkiyle aynı)
+// --- 6. BÄ°LDÄ°RÄ°M SERVÄ°SÄ° (Notyf) ---
 builder.Services.AddNotyf(config =>
 {
     config.DurationInSeconds = 10;
     config.IsDismissable = true;
-    config.Position = NotyfPosition.BottomRight; // Sağ altta çıksın
+    config.Position = NotyfPosition.BottomRight;
 });
-
-// 5. Giriş ve Çerez Ayarları (Cookie Auth)
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(opt =>
-    {
-        opt.Cookie.Name = "VizeHaberAuth"; // Çerez adı
-        opt.ExpireTimeSpan = TimeSpan.FromDays(7); // 7 gün kalsın
-        opt.LoginPath = "/Account/Login";   // Giriş sayfası yolu
-        opt.AccessDeniedPath = "/Account/AccessDenied"; // Yetki yok sayfası
-        opt.LogoutPath = "/Account/Logout";
-        opt.SlidingExpiration = true; // Kullanıcı aktifse süreyi uzat
-    });
 
 var app = builder.Build();
 
-// --- HTTP REQUEST PIPELINE (Uygulama Ayarları) ---
+// --- HTTP REQUEST PIPELINE ---
 
 if (!app.Environment.IsDevelopment())
 {
@@ -55,7 +68,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// 6. Önce Kimlik, Sonra Yetki (Sıralama Önemli)
+// Ã–nce Kimlik (Authentication), Sonra Yetki (Authorization)
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -63,7 +76,10 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// 7. SeedData (Veritabanı başlatıcı)
+// --- 7. VERÄ°TABANI BAÅLATICI (SeedData) ---
+// âš ï¸ DÄ°KKAT: Eski SeedData artÄ±k Ã§alÄ±ÅŸmaz Ã§Ã¼nkÃ¼ User tablosu deÄŸiÅŸti.
+// O yÃ¼zden ÅŸimdilik burayÄ± yorum satÄ±rÄ±na alÄ±yoruz. PatlamasÄ±n.
+/*
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -74,8 +90,9 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Veritabanı başlatılırken hata oluştu.");
+        logger.LogError(ex, "VeritabanÄ± baÅŸlatÄ±lÄ±rken hata oluÅŸtu.");
     }
 }
+*/
 
 app.Run();

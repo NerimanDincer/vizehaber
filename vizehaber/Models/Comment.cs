@@ -11,7 +11,7 @@ namespace vizehaber.Models
         public int NewsId { get; set; }
         public News News { get; set; }
 
-        public int UserId { get; set; } // Yorumu yapan kişi
-        public User User { get; set; }
+        public string AppUserId { get; set; }
+        public AppUser AppUser { get; set; }
     }
 }

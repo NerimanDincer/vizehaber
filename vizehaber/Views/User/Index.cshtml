@@ -1,4 +1,4 @@
-﻿@model List<vizehaber.Models.User>
+﻿@model List<vizehaber.ViewModels.UserRoleViewModel>
 
 @{
     ViewData["Title"] = "Kullanıcı Yönetimi";
@@ -7,86 +7,53 @@
 
 <div class="card shadow mb-4">
     <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Kullanıcı Listesi ve Yetki Yönetimi</h6>
+        <h6 class="m-0 font-weight-bold text-primary">Kullanıcı Listesi</h6>
     </div>
-    <a asp-controller="Admin" asp-action="Index" class="btn btn-sm btn-secondary float-right">
-        <i class="fas fa-arrow-left"></i> Panele Dön
-    </a>
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+            <table class="table table-bordered" width="100%" cellspacing="0">
                 <thead>
                     <tr>
-                        <th>Fotoğraf</th>
-                        <th>Kullanıcı Bilgileri</th>
+                        <th>Kullanıcı</th>
+                        <th>Email</th>
                         <th>Rol (Yetki)</th>
-                        <th>Durum</th>
                         <th>İşlemler</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model)
                     {
-                        <tr class="@(item.IsActive ? "" : "table-danger text-muted")">
-                            <td class="text-center" style="width: 80px;">
-                                <img src="@(item.PhotoPath ?? "/sbadmin/img/undraw_profile.svg")"
-                                     class="rounded-circle" width="50" height="50" style="object-fit:cover;">
-                            </td>
+                        <tr>
+                            <td>@item.FullName</td>
+                            <td>@item.Email</td>
                             <td>
-                                <strong>@item.FullName</strong> <br>
-                                <small>@item.UserName | @item.Email</small>
-                            </td>
-                            <td>
-                                @if (item.Role == "Admin")
+                                @if (item.SelectedRole == "Admin")
                                 {
-                                    <span class="badge badge-danger px-2">Yönetici</span>
+                                    <span class="badge badge-danger">Yönetici</span>
                                 }
-                                else if (item.Role == "Writer")
+                                else if (item.SelectedRole == "Writer")
                                 {
-
-                                    <span class="badge badge-success px-2">Yazar</span>
+                                    <span class="badge badge-success">Yazar</span>
                                 }
                                 else
                                 {
-
-                                    <span class="badge badge-secondary px-2">Okuyucu</span>
+                                    <span class="badge badge-secondary">Okuyucu</span>
                                 }
                             </td>
                             <td>
-                                @if (item.IsActive)
+                                @if (User.Identity.Name != item.Email)
                                 {
-                                    <span class="text-success font-weight-bold">Aktif</span>
-                                }
-                                else
-                                {
-
-                                    <span class="text-danger font-weight-bold"><i class="fas fa-ban"></i> Askıda</span>
-                                }
-                            </td>
-                            <td>
-                                @if (User.Identity.Name != item.UserName)
-                                {
-                                    <a asp-action="EditUser" asp-route-id="@item.Id" class="btn btn-warning btn-sm" title="Yetki Ver / Düzenle">
-                                        <i class="fas fa-user-cog"></i>
+                                    <a asp-action="EditUser" asp-route-id="@item.Id" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-edit"></i> Yetki Ver
                                     </a>
 
-                                    @if (item.IsActive)
-                                    {
-                                        <a asp-action="ToggleUserStatus" asp-route-id="@item.Id" class="btn btn-secondary btn-sm"
-                                           onclick="return confirm('Kullanıcıyı askıya almak istiyor musunuz? Giriş yapamayacak.')" title="Askıya Al">
-                                            <i class="fas fa-lock"></i>
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <a asp-action="ToggleUserStatus" asp-route-id="@item.Id" class="btn btn-success btn-sm" title="Kilidi Aç">
-                                            <i class="fas fa-lock-open"></i>
-                                        </a>
-                                    }
+                                    <a asp-action="ToggleUserStatus" asp-route-id="@item.Id" class="btn btn-info btn-sm">
+                                        <i class="fas fa-lock"></i> Durum
+                                    </a>
 
                                     <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm"
-                                       onclick="return confirm('DİKKAT: Kullanıcı tamamen silinecek!')">
-                                        <i class="fas fa-trash"></i>
+                                       onclick="return confirm('Silmek istediğine emin misin?')">
+                                        <i class="fas fa-trash"></i> Sil
                                     </a>
                                 }
                                 else

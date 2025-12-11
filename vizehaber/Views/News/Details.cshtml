@@ -21,7 +21,7 @@
                 </span>
                 <span class="mr-3">
                     <i class="fas fa-user"></i>
-                    @(Model.User != null ? Model.User.FullName : "Yazar Bilgisi Yok")
+                    @(Model.AppUser != null ? Model.AppUser.FullName : "Yazar Bilgisi Yok")
                 </span>
                 <span>
                     <i class="fas fa-folder"></i>
@@ -78,7 +78,7 @@
                             <img class="d-flex mr-3 rounded-circle" src="/sbadmin/img/undraw_profile.svg" width="50" alt="">
                             <div class="media-body">
                                 <h5 class="mt-0">
-                                    @(comment.User != null ? comment.User.FullName : "Kullanıcı")
+                                    @(comment.AppUser != null ? comment.AppUser.FullName : "Kullanıcı")
                                     <small class="text-muted">@comment.CreatedDate.ToString("dd.MM.yyyy HH:mm")</small>
                                 </h5>
                                 @comment.Text

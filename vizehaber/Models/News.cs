@@ -23,8 +23,8 @@ namespace vizehaber.Models
         public Category Category { get; set; }
 
         // ✅ Yazar İlişkisi (Artık User tablosuna bağlı)
-        public int UserId { get; set; }
-        public User User { get; set; }
+        public string AppUserId { get; set; }
+        public AppUser AppUser { get; set; }
 
         public bool IsApproved { get; set; } = false;
         public List<Comment>? Comments { get; set; }

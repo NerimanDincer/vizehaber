@@ -31,7 +31,7 @@
                     {
                         <tr class="@(item.IsActive ? "" : "table-danger text-muted")">
                             <td>
-                                <strong>@(item.User?.FullName ?? "Bilinmiyor")</strong>
+                                <strong>@(item.AppUser?.FullName ?? "Bilinmiyor")</strong>
                             </td>
                             <td>
                                 @if (item.Text.Length > 50)

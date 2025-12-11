@@ -22,8 +22,6 @@ namespace vizehaber.ViewModels
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Şifreler eşleşmiyor")]
         public string ConfirmPassword { get; set; }
-
-        public string Role { get; set; } = "User"; // default rol
     }
 }
 

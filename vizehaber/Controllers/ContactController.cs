@@ -49,7 +49,7 @@ namespace vizehaber.Controllers
                     await Photo.CopyToAsync(stream);
                 }
 
-                model.PhotoPath = "/contactPhotos/" + fileName;
+                model.PhotoUrl = "/contactPhotos/" + fileName;
             }
 
             // TARİH İSİMLERİ DÜZELTİLDİ (BaseEntity ile uyumlu)

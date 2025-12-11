@@ -11,12 +11,12 @@ namespace vizehaber.Controllers
     {
         private readonly IRepository<Comment> _commentRepository;
         private readonly IRepository<News> _newsRepository;
-        private readonly IRepository<User> _userRepository;
+        private readonly IRepository<AppUser> _userRepository;
         private readonly INotyfService _notyf;
 
         public CommentController(IRepository<Comment> commentRepository,
                                  IRepository<News> newsRepository,
-                                 IRepository<User> userRepository,
+                                 IRepository<AppUser> userRepository,
                                  INotyfService notyf)
         {
             _commentRepository = commentRepository;
@@ -35,7 +35,7 @@ namespace vizehaber.Controllers
             foreach (var item in comments)
             {
                 item.News = news.FirstOrDefault(n => n.Id == item.NewsId);
-                item.User = users.FirstOrDefault(u => u.Id == item.UserId);
+                item.AppUser = users.FirstOrDefault(u => u.Id == item.AppUserId);
             }
 
             // En yeniden eskiye sırala

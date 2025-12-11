@@ -43,7 +43,7 @@
                             <td>
                                 <span class="badge badge-secondary">@(item.Category != null ? item.Category.Name : "-")</span>
                             </td>
-                            <td>@(item.User != null ? item.User.FullName : "-")</td>
+                            <td>@(item.AppUser != null ? item.AppUser.FullName : "-")</td>
 
                             <td>
                                 @if (item.IsActive)

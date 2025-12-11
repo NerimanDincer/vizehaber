@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 using vizehaber.Models;
 using vizehaber.Repositories;
 
@@ -15,13 +16,15 @@ namespace vizehaber.ViewComponents
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            // Tüm mesajları çek, son 3 tanesini View'a gönder
-            // (Gerçek projede "IsRead" alanı olurdu ama şimdilik hepsini sayalım)
-            var messages = await _contactRepo.GetAllAsync();
-            var recentMessages = messages.OrderByDescending(x => x.CreatedDate).Take(3).ToList();
+            // 1. Veriyi çekip hemen Listeye çeviriyoruz (.ToList() ekledik)
+            // Böylece Count hatası vermez ve veriyi hafızaya alırız.
+            var allMessages = (await _contactRepo.GetAllAsync()).ToList();
 
-            // Sayıyı ViewBag ile taşıyalım
-            ViewBag.UnreadCount = messages.Count;
+            // 2. Toplam Okunmamış Sayısını ViewBag'e atıyoruz (Rozet için)
+            ViewBag.UnreadCount = allMessages.Count;
+
+            // 3. Sadece son 3 tanesini alıp View'a gönderiyoruz (Liste için)
+            var recentMessages = allMessages.OrderByDescending(x => x.CreatedDate).Take(3).ToList();
 
             return View(recentMessages);
         }

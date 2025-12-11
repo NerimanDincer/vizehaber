@@ -11,9 +11,9 @@
 
 <form asp-action="Login" method="post">
     <div class="mb-2">
-        <label>Kullanıcı adı veya Email</label>
-        <input asp-for="UserNameOrEmail" class="form-control" />
-        <span class="text-danger" asp-validation-for="UserNameOrEmail"></span>
+        <label>Email Adresi</label>
+        <input asp-for="Email" class="form-control" placeholder="Email adresinizi giriniz" />
+        <span class="text-danger" asp-validation-for="Email"></span>
     </div>
 
     <div class="mb-2">

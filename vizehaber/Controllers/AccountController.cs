@@ -1,134 +1,126 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using AspNetCoreHero.ToastNotification.Abstractions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using vizehaber.Models;
-using vizehaber.Repositories;
-using vizehaber.Services;
-using vizehaber.ViewModels;
-using AspNetCoreHero.ToastNotification.Abstractions;
+using vizehaber.ViewModels; // ViewModel için bu satır şart!
 
 namespace vizehaber.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly IRepository<User> _userRepository;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
         private readonly INotyfService _notyf;
 
-        public AccountController(IRepository<User> userRepository, INotyfService notyf)
+        // Constructor (Yapıcı Metot)
+        public AccountController(UserManager<AppUser> userManager,
+                                 SignInManager<AppUser> signInManager,
+                                 INotyfService notyf)
         {
-            _userRepository = userRepository;
+            _userManager = userManager;
+            _signInManager = signInManager;
             _notyf = notyf;
         }
 
+        // --- GİRİŞ YAP (LOGIN) ---
         [HttpGet]
         public IActionResult Login()
         {
-            if (User.Identity.IsAuthenticated) return RedirectToAction("Index", "Home");
             return View();
         }
 
+        // --- GİRİŞ YAP (LOGIN) - POST ---
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
-            if (!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
-            string hashedPassword = GeneralService.HashPassword(model.Password);
-            var users = await _userRepository.FindAsync(x => x.Email == model.UserNameOrEmail || x.UserName == model.UserNameOrEmail);
-            var user = users.FirstOrDefault(x => x.Password == hashedPassword);
+            // Kullanıcıyı bul
+            var user = await _userManager.FindByEmailAsync(model.Email);
 
             if (user != null)
             {
-                if (!user.IsActive)
+                // Şifreyi kontrol et
+                // 3. parametre (model.RememberMe): Beni Hatırla özelliği
+                // 4. parametre (false): Şifreyi çok yanlış girerse kilitleme (şimdilik kapalı)
+                var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
+
+                if (result.Succeeded)
                 {
-                    _notyf.Error("Hesabınız askıya alınmıştır. Giriş yapamazsınız.");
-                    return View(model);
+                    _notyf.Success($"Hoş geldiniz, {user.FullName}");
+
+                    // Eğer admin ise Admin paneline, değilse Anasayfaya gitsin
+                    // (Şimdilik direkt anasayfaya yönlendiriyoruz)
+                    return RedirectToAction("Index", "Home");
                 }
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.FullName ?? ""),
-                    new Claim(ClaimTypes.NameIdentifier, user.UserName ?? ""),
-                    new Claim(ClaimTypes.Role, user.Role ?? "User"),
-                    new Claim("Id", user.Id.ToString()),
-                    new Claim("PhotoPath", user.PhotoPath ?? "/sbadmin/img/undraw_profile.svg")
-                };
-
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var authProperties = new AuthenticationProperties
-                {
-                    IsPersistent = true,
-                    ExpiresUtc = DateTime.UtcNow.AddDays(7)
-                };
-
-                await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(claimsIdentity),
-                    authProperties);
-
-                _notyf.Success($"Hoşgeldin {user.FullName}!", 3);
-                return RedirectToAction("Index", "Home");
             }
 
-            _notyf.Error("Kullanıcı adı veya şifre hatalı.");
+            _notyf.Error("E-posta veya şifre hatalı!");
             return View(model);
         }
 
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            // _notyf.Information("Oturum kapatıldı.");
-            return RedirectToAction("Login");
-        }
-
-        // --- İŞTE BU EKSİKTİ, EKLENDİ ---
+        // --- KAYIT OL (REGISTER) ---
         [HttpGet]
         public IActionResult Register()
         {
             return View();
         }
-        // --------------------------------
 
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            if (!ModelState.IsValid) return View(model);
-
-            try
+            // 1. Model geçerli mi?
+            if (!ModelState.IsValid)
             {
-                var existingUsers = await _userRepository.FindAsync(x => x.Email == model.Email || x.UserName == model.UserName);
-                if (existingUsers.Any())
-                {
-                    _notyf.Warning("Bu kullanıcı zaten kayıtlı.");
-                    return View(model);
-                }
+                return View(model);
+            }
 
-                var newUser = new User
-                {
-                    FullName = model.FullName,
-                    UserName = model.UserName,
-                    Email = model.Email,
-                    Password = GeneralService.HashPassword(model.Password),
-                    Role = "User",
-                    PhotoPath = "/sbadmin/img/undraw_profile.svg",
-                    CreatedDate = DateTime.Now,
-                    IsActive = true
-                };
+            // 2. ViewModel'den AppUser'a çevir
+            var appUser = new AppUser
+            {
+                UserName = model.Email, // Kullanıcı adı E-posta olsun
+                Email = model.Email,
+                FullName = model.FullName,
+                PhotoUrl = "/sbadmin/img/undraw_profile.svg", // Varsayılan resim
+                IsActive = true,
+                CreatedDate = DateTime.Now
+            };
 
-                await _userRepository.AddAsync(newUser);
+            // 3. Kaydet
+            var result = await _userManager.CreateAsync(appUser, model.Password);
+
+            if (result.Succeeded)
+            {
                 _notyf.Success("Kayıt başarılı! Giriş yapabilirsiniz.");
                 return RedirectToAction("Login");
             }
-            catch (Exception ex)
+            else
             {
-                ModelState.AddModelError("", "Hata: " + ex.Message);
-                _notyf.Error("Kayıt başarısız oldu.");
-                return View(model);
+                foreach (var error in result.Errors)
+                {
+                    _notyf.Error(error.Description);
+                }
             }
+
+            // Hata varsa formu tekrar göster
+            return View(model);
         }
 
+        // --- ÇIKIŞ YAP (LOGOUT) ---
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            _notyf.Information("Çıkış yapıldı.");
+            return RedirectToAction("Index", "Home");
+        }
+
+        // --- ERİŞİM ENGELLENDİ ---
         public IActionResult AccessDenied()
         {
-            _notyf.Error("Bu sayfaya erişim yetkiniz yok!");
+            _notyf.Warning("Bu sayfaya erişim yetkiniz yok!");
             return RedirectToAction("Index", "Home");
         }
     }
