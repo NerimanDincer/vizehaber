@@ -44,7 +44,7 @@ namespace vizehaber.Controllers
 
         public async Task<IActionResult> GetReport()
         {
-            // Burada da .ToList() ekledik
+            // Verileri çekiyoruz
             var news = (await _newsRepository.GetAllAsync()).ToList();
             var categories = (await _categoryRepository.GetAllAsync()).ToList();
             var users = (await _userRepository.GetAllAsync()).ToList();
@@ -52,27 +52,45 @@ namespace vizehaber.Controllers
 
             var builder = new StringBuilder();
 
-            builder.AppendLine("Rapor Tarihi:," + DateTime.Now.ToString("dd.MM.yyyy HH:mm"));
+            // --- BAŞLIK ---
+            // Not: Excel için sütunları ayırmak adına ";" (noktalı virgül) kullanıyoruz.
+            builder.AppendLine($"Rapor Tarihi:;{DateTime.Now:dd.MM.yyyy HH:mm}");
             builder.AppendLine("");
 
-            builder.AppendLine("ISTATISTIKLER");
-            builder.AppendLine("Kategori,Adet");
-            builder.AppendLine($"Toplam Haber Sayisi,{news.Count}");
-            builder.AppendLine($"Toplam Kategori Sayisi,{categories.Count}");
-            builder.AppendLine($"Toplam Kullanici Sayisi,{users.Count}");
-            builder.AppendLine($"Toplam Yorum Sayisi,{comments.Count}");
+            // --- İSTATİSTİKLER ---
+            builder.AppendLine("GENEL ISTATISTIKLER");
+            builder.AppendLine("Baslik;Adet");
+            builder.AppendLine($"Toplam Haber Sayisi;{news.Count}");
+            builder.AppendLine($"Toplam Kategori Sayisi;{categories.Count}");
+            builder.AppendLine($"Toplam Kullanici Sayisi;{users.Count}");
+            builder.AppendLine($"Toplam Yorum Sayisi;{comments.Count}");
             builder.AppendLine("");
 
+            // --- KULLANICI LİSTESİ ---
             builder.AppendLine("SON UYE OLAN KULLANICILAR");
-            builder.AppendLine("Ad Soyad,Email,Kayit Tarihi"); // Rolü sildim çünkü AppUser'da direkt Role yok
+            // Başlıkları Türkçe karakterden arındırmak CSV için bazen daha güvenlidir ama BOM ile sorun olmaz.
+            builder.AppendLine("Ad Soyad;Email;Unvan (Uzmanlik);Kayit Tarihi");
 
-            foreach (var user in users.OrderByDescending(x => x.CreatedDate).Take(10))
+            foreach (var user in users.OrderByDescending(x => x.CreatedDate).Take(20)) // Son 20 kişiyi getir
             {
-                // AppUser özelliklerini yazdırıyoruz
-                builder.AppendLine($"{user.FullName},{user.Email},{user.CreatedDate}");
+                // Unvan boşsa "-" yazsın
+                string unvan = string.IsNullOrEmpty(user.Specialization) ? "-" : user.Specialization;
+
+                // CSV satırını oluşturuyoruz
+                builder.AppendLine($"{user.FullName};{user.Email};{unvan};{user.CreatedDate:dd.MM.yyyy}");
             }
 
-            return File(Encoding.UTF8.GetBytes(builder.ToString()), "text/csv", "sistem_raporu.csv");
+            // 🔥 SİHİRLİ DOKUNUŞ: Excel için UTF-8 BOM İmzası 🔥
+            // Bu kısım karakterlerin (Ş, İ, Ğ) bozulmasını engeller.
+            var content = builder.ToString();
+            var buffer = Encoding.UTF8.GetBytes(content);
+            var bom = Encoding.UTF8.GetPreamble();
+
+            var result = new byte[bom.Length + buffer.Length];
+            Buffer.BlockCopy(bom, 0, result, 0, bom.Length);
+            Buffer.BlockCopy(buffer, 0, result, bom.Length, buffer.Length);
+
+            return File(result, "text/csv", $"SistemRaporu_{DateTime.Now:yyyyMMdd_HHmm}.csv");
         }
     }
 }

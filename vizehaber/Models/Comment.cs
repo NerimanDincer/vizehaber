@@ -9,9 +9,9 @@ namespace vizehaber.Models
 
         // İlişkiler
         public int NewsId { get; set; }
-        public News News { get; set; }
+        public virtual News News { get; set; }
 
         public string AppUserId { get; set; }
-        public AppUser AppUser { get; set; }
+        public virtual AppUser AppUser { get; set; }
     }
 }

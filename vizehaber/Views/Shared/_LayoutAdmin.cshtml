@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using vizehaber.Models
+@inject UserManager<AppUser> UserManager
+<!DOCTYPE html>
 <html lang="tr">
 
 <head>
@@ -228,8 +231,11 @@
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">
                                     @if (User.Identity.IsAuthenticated)
                                     {
-                                        @User.Identity.Name
-                                        <b>(@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value)</b>
+                                        // Kullanıcı giriş yapmışsa bilgilerini veritabanından çek
+                                        var user = await UserManager.GetUserAsync(User);
+
+                                        // Eğer kullanıcı bulunduysa Adını Soyadını yaz, yoksa (ne olur ne olmaz) mailini yaz
+                                        @(user?.FullName ?? User.Identity.Name)
                                     }
                                     else
                                     {
@@ -237,8 +243,20 @@
                                     }
                                 </span>
 
-                                <img class="img-profile rounded-circle"
-                                     src="@(User.FindFirst("PhotoUrl")?.Value ?? "/sbadmin/img/undraw_profile.svg")">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    // Kullanıcıyı veritabanından çek (Önbellek yerine taze veri)
+                                    var currentUserForImg = await UserManager.GetUserAsync(User);
+
+                                    // Fotoğrafı varsa onu, yoksa varsayılanı kullan
+                                    var photoPath = currentUserForImg?.PhotoUrl ?? "/sbadmin/img/undraw_profile.svg";
+
+                                    <img class="img-profile rounded-circle" src="@photoPath" style="object-fit: cover;">
+                                }
+                                else
+                                {
+                                    <img class="img-profile rounded-circle" src="/sbadmin/img/undraw_profile.svg">
+                                }
                             </a>
 
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -337,6 +355,9 @@
     <script src="~/sbadmin/js/sb-admin-2.min.js"></script>
 
     <script src="~/sbadmin/vendor/chart.js/Chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+    <script src="~/js/SignalR.js"></script>
 
     @await Component.InvokeAsync("Notyf")
     @await RenderSectionAsync("Scripts", required: false)

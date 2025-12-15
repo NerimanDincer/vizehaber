@@ -15,6 +15,7 @@ namespace vizehaber.Models
 
         [Display(Name = "Haber Fotoğrafı")]
         public string? ImagePath { get; set; } // Senin istediğin isim
+        public int ViewCount { get; set; } = 0; // Varsayılan 0 olsun, okunma sayısı burası
 
         // --- İLİŞKİLER ---
 

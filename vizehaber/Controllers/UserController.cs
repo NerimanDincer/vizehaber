@@ -50,7 +50,6 @@ namespace vizehaber.Controllers
             return View(userListViewModel);
         }
 
-        // --- 2. PROFİL SAYFASI (HATA 3 ÇÖZÜMÜ) ---
         [HttpGet]
         public async Task<IActionResult> Profile()
         {
@@ -144,6 +143,102 @@ namespace vizehaber.Controllers
             await _userManager.DeleteAsync(user);
             _notyf.Success("Kullanıcı silindi.");
             return RedirectToAction("Index");
+        }
+        // --- KENDİ PROFİLİNİ DÜZENLE (GET) ---
+        [HttpGet]
+        public async Task<IActionResult> EditProfile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            var model = new UserUpdateViewModel
+            {
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Biography = user.Biography,
+                PhotoUrl = user.PhotoUrl
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditProfile(UserUpdateViewModel model, IFormFile? file)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            // 1. Temel Bilgileri Güncelle
+            user.FullName = model.FullName;
+            user.PhoneNumber = model.PhoneNumber;
+            user.Biography = model.Biography;
+
+            // 2. Resim Yükleme (Aynı kalıyor)
+            if (file != null && file.Length > 0)
+            {
+                var extension = Path.GetExtension(file.FileName);
+                var newImageName = Guid.NewGuid() + extension;
+                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/newsPhotos");
+
+                if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+                var location = Path.Combine(folderPath, newImageName);
+                using (var stream = new FileStream(location, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+                user.PhotoUrl = "/newsPhotos/" + newImageName;
+            }
+
+            // 3. Şifre Değiştirme (GÜNCELLENDİ) 🛠️
+            if (!string.IsNullOrEmpty(model.NewPassword))
+            {
+                // A) Mevcut şifre girilmemişse uyar
+                if (string.IsNullOrEmpty(model.CurrentPassword))
+                {
+                    _notyf.Error("Şifre değiştirmek için mevcut şifrenizi girmelisiniz.");
+                    return View(model);
+                }
+
+                // B) 🔥 YENİ KONTROL: Eski ve Yeni şifre aynı mı?
+                if (model.CurrentPassword == model.NewPassword)
+                {
+                    _notyf.Warning("Yeni şifreniz, mevcut şifrenizle aynı olamaz!");
+                    return View(model);
+                }
+
+                var passwordChangeResult = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+
+                if (!passwordChangeResult.Succeeded)
+                {
+                    foreach (var error in passwordChangeResult.Errors)
+                    {
+                        // C) 🔥 TÜRKÇELEŞTİRME: Hata kodu "PasswordMismatch" ise biz mesajı değiştiriyoruz
+                        if (error.Code == "PasswordMismatch")
+                        {
+                            _notyf.Error("Mevcut şifrenizi yanlış girdiniz!");
+                        }
+                        else
+                        {
+                            // Diğer hatalar (örn: şifre çok kısa vs.) yine İngilizce gelebilir
+                            // Onları da tek tek yakalayabilirsin ama şimdilik böyle kalsın.
+                            _notyf.Error(error.Description);
+                        }
+                    }
+                    return View(model);
+                }
+            }
+
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                _notyf.Success("Profiliniz başarıyla güncellendi.");
+                return RedirectToAction("Profile");
+            }
+
+            _notyf.Error("Güncelleme sırasında hata oluştu.");
+            return View(model);
         }
     }
 }

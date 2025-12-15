@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-// Dosyan "Models" klasöründe olduğu için namespace'i buna eşitledim.
-// Böylece kafa karışıklığı olmaz.
+
 namespace vizehaber.Models
 {
     public class AppDbContext : IdentityDbContext<AppUser, AppRole, string>

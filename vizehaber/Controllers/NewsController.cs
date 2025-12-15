@@ -2,9 +2,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims; // Identity için gerekli
 using vizehaber.Models;
 using vizehaber.Repositories;
+using Microsoft.AspNetCore.SignalR;
+using vizehaber.Hubs;
 
 namespace vizehaber.Controllers
 {
@@ -14,16 +17,21 @@ namespace vizehaber.Controllers
         private readonly IRepository<News> _newsRepository;
         private readonly IRepository<Category> _categoryRepository;
         private readonly IRepository<Comment> _commentRepository;
-        private readonly IRepository<AppUser> _userRepository; // Adını düzelttik
+        private readonly IRepository<AppUser> _userRepository; 
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly INotyfService _notyf;
+
+        private readonly AppDbContext _context;
+        private readonly IHubContext<GeneralHub> _hubContext; 
 
         public NewsController(IRepository<News> newsRepository,
                               IRepository<Category> categoryRepository,
                               IRepository<Comment> commentRepository,
                               IRepository<AppUser> userRepository,
                               IWebHostEnvironment webHostEnvironment,
-                              INotyfService notyf)
+                              INotyfService notyf,
+                              AppDbContext context,
+                              IHubContext<GeneralHub> hubContext)
         {
             _newsRepository = newsRepository;
             _categoryRepository = categoryRepository;
@@ -31,6 +39,8 @@ namespace vizehaber.Controllers
             _userRepository = userRepository;
             _webHostEnvironment = webHostEnvironment;
             _notyf = notyf;
+            _context = context;
+            _hubContext=hubContext;
         }
 
         public async Task<IActionResult> Index()
@@ -95,6 +105,7 @@ namespace vizehaber.Controllers
             {
                 await _newsRepository.AddAsync(news);
                 _notyf.Success("Haber başarıyla eklendi!");
+                await _hubContext.Clients.All.SendAsync("ReceiveNewsNotification", news.Title, news.Id);
                 return RedirectToAction("Index");
             }
 
@@ -155,7 +166,6 @@ namespace vizehaber.Controllers
                 existingNews.ImagePath = "/newsPhotos/" + fileName;
             }
 
-            // 🔥🔥🔥 EKLEMEN GEREKEN YER BURASI 🔥🔥🔥
 
             // 1. Validasyon Hatalarını Temizle
             ModelState.Remove("Category");
@@ -226,51 +236,44 @@ namespace vizehaber.Controllers
                 return Json(new { success = false, message = "Lütfen giriş yapın." });
             }
 
-            string userName = User.Identity.Name;
+            string userName = User.Identity.Name; // Veya veritabanından FullName çekebilirsin
 
             var comment = new Comment
             {
                 NewsId = newsId,
                 Text = text,
-                AppUserId = userId, // String ID ataması
+                AppUserId = userId,
                 CreatedDate = DateTime.Now,
                 IsActive = true
             };
 
             await _commentRepository.AddAsync(comment);
 
-            return Json(new
-            {
-                success = true,
-                userName = userName,
-                date = DateTime.Now.ToString("dd.MM.yyyy HH:mm"),
-                text = text
-            });
+            string date = DateTime.Now.ToString("dd.MM.yyyy HH:mm");
+
+            await _hubContext.Clients.All.SendAsync("ReceiveComment", newsId, userName, text, date);
+
+            return RedirectToAction("Details", new { id = newsId });
         }
 
         [AllowAnonymous]
         public async Task<IActionResult> Details(int id)
         {
-            var news = await _newsRepository.GetByIdAsync(id);
+            // 🔥 _newsRepository YERİNE _context KULLANIYORUZ
+            var news = await _context.News
+                .Include(x => x.Category)
+                .Include(x => x.AppUser)        // Haberin Yazarı
+                .Include(x => x.Comments)       // Yorumlar
+                .ThenInclude(c => c.AppUser)    // Yorumu Yapan Kullanıcı (Kritik nokta!)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
             if (news == null) return NotFound();
 
-            if (news.CategoryId != 0)
-                news.Category = await _categoryRepository.GetByIdAsync(news.CategoryId);
+            // Okunma sayısını artır
+            news.ViewCount++;
+            _context.News.Update(news);
+            await _context.SaveChangesAsync();
 
-            // Null veya Boş değilse kullanıcıyı getir
-            if (!string.IsNullOrEmpty(news.AppUserId))
-                news.AppUser = await _userRepository.GetByIdAsync(news.AppUserId);
-
-            var allComments = await _commentRepository.GetAllAsync();
-            var newsComments = allComments.Where(x => x.NewsId == id).OrderByDescending(x => x.CreatedDate).ToList();
-
-            var users = await _userRepository.GetAllAsync();
-            foreach (var comment in newsComments)
-            {
-                comment.AppUser = users.FirstOrDefault(u => u.Id == comment.AppUserId);
-            }
-
-            news.Comments = newsComments;
             return View(news);
         }
     }

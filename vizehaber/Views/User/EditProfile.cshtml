@@ -1,47 +1,70 @@
-﻿@model vizehaber.Models.AppUser
+﻿@model vizehaber.ViewModels.UserUpdateViewModel
+
 @{
-    ViewData["Title"] = "Profili Düzenle"; Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    ViewData["Title"] = "Profili Düzenle";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 }
 
-<div class="card shadow mb-4">
-    <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Profil Bilgilerini Güncelle</h6>
-    </div>
-    <div class="card-body">
-        <form asp-action="EditProfile" method="post" enctype="multipart/form-data">
-            <input type="hidden" asp-for="Id" />
-
-            <div class="form-group">
-                <label>Ad Soyad</label>
-                <input asp-for="FullName" class="form-control" />
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Profil Bilgilerini Güncelle</h6>
             </div>
+            <div class="card-body">
+                <form asp-action="EditProfile" method="post" enctype="multipart/form-data">
 
-            <div class="form-group">
-                <label>Kullanıcı Adı</label>
-                <input asp-for="UserName" class="form-control" />
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <img src="@(Model.PhotoUrl ?? "/sbadmin/img/undraw_profile.svg")"
+                                 class="img-fluid rounded-circle mb-2" style="width: 150px; height: 150px; object-fit: cover;">
+                            <br>
+
+                            <label class="btn btn-sm btn-primary mt-2" style="cursor: pointer;">
+                                <i class="fas fa-camera"></i> Fotoğraf Değiştir
+                                <input type="file" name="file" style="display: none;" onchange="this.form.submit()">
+                            </label>
+                            <small class="d-block text-muted">Seçince otomatik yüklenir</small>
+                        </div>
+
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label>Ad Soyad</label>
+                                <input asp-for="FullName" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label>E-Posta (Değiştirilemez)</label>
+                                <input asp-for="Email" class="form-control" readonly />
+                            </div>
+                            <div class="form-group">
+                                <label>Telefon</label>
+                                <input asp-for="PhoneNumber" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label>Biyografi</label>
+                                <textarea asp-for="Biography" class="form-control" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <h6 class="text-muted">Şifre Değiştir (İsteğe Bağlı)</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <input asp-for="CurrentPassword" class="form-control" placeholder="Mevcut Şifreniz">
+                        </div>
+                        <div class="col-md-6">
+                            <input asp-for="NewPassword" class="form-control" placeholder="Yeni Şifreniz">
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-right">
+                        <button type="submit" class="btn btn-success">Değişiklikleri Kaydet</button>
+                        <a asp-action="Profile" class="btn btn-secondary">İptal</a>
+                    </div>
+
+                </form>
             </div>
-
-            <div class="form-group">
-                <label>E-posta</label>
-                <input asp-for="Email" class="form-control" />
-            </div>
-
-            <div class="form-group">
-                <label>Biyografi</label>
-                <textarea asp-for="Biography" class="form-control" rows="3"></textarea>
-            </div>
-
-            <div class="form-group">
-                <label>Profil Fotoğrafı</label>
-                @if (!string.IsNullOrEmpty(Model.PhotoUrl))
-                {
-                    <div class="mb-2"><img src="@Model.PhotoUrl" width="80" class="rounded-circle" /></div>
-                }
-                <input type="file" name="file" class="form-control-file" />
-            </div>
-
-            <button type="submit" class="btn btn-primary">Güncelle</button>
-            <a asp-action="Profile" class="btn btn-secondary">İptal</a>
-        </form>
+        </div>
     </div>
 </div>

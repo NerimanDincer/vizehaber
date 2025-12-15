@@ -2,153 +2,115 @@
 
 @{
     ViewData["Title"] = Model.Title;
-    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml"; 
 }
 
-<div class="container-fluid">
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8">
 
-    <div class="card shadow mb-4">
-        @if (!string.IsNullOrEmpty(Model.ImagePath))
-        {
-            <img src="@Model.ImagePath" class="card-img-top" alt="@Model.Title" style="max-height: 400px; object-fit: cover;">
-        }
-        <div class="card-body">
-            <h2 class="font-weight-bold text-gray-900">@Model.Title</h2>
+            <h1 class="font-weight-bold mb-3">@Model.Title</h1>
 
-            <div class="mb-3 text-muted">
-                <span class="mr-3">
-                    <i class="fas fa-calendar-alt"></i> @Model.PublishedDate.ToString("dd MMMM yyyy")
+            <div class="d-flex align-items-center flex-wrap mb-4">
+
+                <span class="text-muted mr-3">
+                    <i class="far fa-calendar-alt"></i> @Model.PublishedDate.ToString("dd MMMM yyyy")
                 </span>
-                <span class="mr-3">
-                    <i class="fas fa-user"></i>
-                    @(Model.AppUser != null ? Model.AppUser.FullName : "Yazar Bilgisi Yok")
+
+                <span class="text-muted mr-3">
+                    <i class="fas fa-folder"></i> @Model.Category.Name
                 </span>
-                <span>
-                    <i class="fas fa-folder"></i>
-                    @(Model.Category != null ? Model.Category.Name : "Kategori Yok")
+
+                <span class="text-muted mr-3">
+                    <i class="fas fa-user"></i> @(Model.AppUser?.FullName ?? "Editör")
                 </span>
+
+                <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.9rem;">
+                    <i class="fas fa-eye"></i> @Model.ViewCount Kez Okundu
+                </span>
+
             </div>
 
-            <hr>
+            @if (!string.IsNullOrEmpty(Model.ImagePath))
+            {
+                <img src="@Model.ImagePath" class="img-fluid rounded shadow-sm mb-4 w-100" alt="@Model.Title">
+            }
 
-            <div class="card-text text-dark" style="font-size: 1.1rem; line-height: 1.8;">
+            <div class="news-content" style="font-size: 1.1rem; line-height: 1.8;">
                 @Html.Raw(Model.Content)
             </div>
 
-            <div class="mt-4">
-                <a asp-action="Index" class="btn btn-secondary btn-sm">
-                    <i class="fas fa-arrow-left"></i> Listeye Dön
-                </a>
-            </div>
-        </div>
-    </div>
+            <hr class="my-5">
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Yorumlar</h6>
-        </div>
-        <div class="card-body">
+            <div class="comments-section">
+                <h3 class="mb-4"><i class="fas fa-comments"></i> Yorumlar (@Model.Comments.Count)</h3>
 
-            @if (User.Identity.IsAuthenticated)
-            {
-                <form id="commentForm">
-                    <input type="hidden" name="NewsId" value="@Model.Id" />
-                    <div class="form-group">
-                        <textarea class="form-control" name="Text" rows="3" placeholder="Yorumunuzu buraya yazın..."></textarea>
-                    </div>
-                    <button type="button" class="btn btn-primary btn-sm" id="btnYorumYap">Gönder</button>
-                </form>
-            }
-            else
-            {
-                <div class="alert alert-warning">
-                    Yorum yapabilmek için <a asp-controller="Account" asp-action="Login">giriş yapmalısınız.</a>
-                </div>
-            }
-
-            <hr />
-
-            <div id="commentsList">
-
-                @if (Model.Comments != null && Model.Comments.Any())
+                @if (Model.Comments.Count > 0)
                 {
-                    @foreach (var comment in Model.Comments)
+                    @foreach (var comment in Model.Comments.OrderByDescending(c => c.CreatedDate))
                     {
-                        <div class="media mb-4">
-                            <img class="d-flex mr-3 rounded-circle" src="/sbadmin/img/undraw_profile.svg" width="50" alt="">
+                        <div class="media mb-4 p-3 rounded" style="background-color: #f8f9fa;">
+                            <img class="d-flex mr-3 rounded-circle"
+                                 src="@(comment.AppUser?.PhotoUrl ?? "/sbadmin/img/undraw_profile.svg")"
+                                 width="50" height="50" style="object-fit: cover;" alt="">
+
                             <div class="media-body">
-                                <h5 class="mt-0">
-                                    @(comment.AppUser != null ? comment.AppUser.FullName : "Kullanıcı")
-                                    <small class="text-muted">@comment.CreatedDate.ToString("dd.MM.yyyy HH:mm")</small>
+                                <h5 class="mt-0 font-weight-bold text-dark">
+                                    @(comment.AppUser?.FullName ?? "Anonim Kullanıcı")
+                                    <small class="text-muted ml-2" style="font-size: 0.8rem;">
+                                        @comment.CreatedDate.ToString("dd.MM.yyyy HH:mm")
+                                    </small>
                                 </h5>
                                 @comment.Text
                             </div>
                         </div>
-                        <hr>
                     }
                 }
                 else
                 {
-                    <p class="text-muted text-center" id="noCommentText">Henüz yorum yapılmamış. İlk yorumu sen yap!</p>
+                    <div class="alert alert-info">
+                        Henüz yorum yapılmamış. İlk yorumu sen yap! 🚀
+                    </div>
                 }
+
+                <div class="card my-4 shadow-sm border-0">
+                    <h5 class="card-header bg-white border-0 font-weight-bold">Yorum Bırak</h5>
+                    <div class="card-body">
+
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <form asp-action="AddComment" method="post">
+                                <input type="hidden" name="newsId" value="@Model.Id" />
+
+                                <div class="form-group">
+                                    <textarea class="form-control" name="text" rows="3"
+                                          placeholder="Düşüncelerini paylaş..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Gönder
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="text-center py-3">
+                                <p class="mb-3">Yorum yapabilmek için giriş yapmalısınız.</p>
+                                <a href="/Account/Login" class="btn btn-outline-primary">
+                                    <i class="fas fa-sign-in-alt"></i> Giriş Yap
+                                </a>
+                                <a href="/Account/Register" class="btn btn-outline-secondary">
+                                    Kayıt Ol
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
 
             </div>
+
+        </div>
+
+        <div class="col-lg-4">
         </div>
     </div>
-
 </div>
-
-@section Scripts {
-    <script>
-        $(document).ready(function() {
-
-            $("#btnYorumYap").click(function() {
-
-                var yorumMetni = $("textarea[name='Text']").val();
-                var haberId = $("input[name='NewsId']").val();
-
-                if(yorumMetni.trim() == "") {
-                    alert("Lütfen bir yorum yazın.");
-                    return;
-                }
-
-                $.ajax({
-                    url: '/News/AddComment',
-                    type: 'POST',
-                    data: { newsId: haberId, text: yorumMetni },
-                    success: function(response) {
-                        if (response.success) {
-
-                            // Yorum kutusunu temizle
-                            $("textarea[name='Text']").val("");
-
-                            // "Henüz yorum yok" yazısı varsa kaldır
-                            $("#noCommentText").hide();
-
-                            // Yeni yorumu listeye ekle
-                            var yeniYorumHtml = `
-                                <div class="media mb-4">
-                                    <img class="d-flex mr-3 rounded-circle" src="/sbadmin/img/undraw_profile.svg" width="50" alt="">
-                                    <div class="media-body">
-                                        <h5 class="mt-0">${response.userName} <small class="text-muted">${response.date}</small></h5>
-                                        ${response.text}
-                                    </div>
-                                </div>
-                                <hr>`;
-
-                            $("#commentsList").prepend(yeniYorumHtml);
-
-                        } else {
-                            alert(response.message);
-                        }
-                    },
-                    error: function() {
-                        alert("Bir hata oluştu.");
-                    }
-                });
-
-            });
-
-        });
-    </script>
-}

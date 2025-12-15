@@ -19,7 +19,7 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 // --- 3. 🔥 IDENTITY AYARLARI (Kritik Nokta) ---
 builder.Services.AddIdentity<AppUser, AppRole>(opt =>
 {
-    // Şifre Zorluk Ayarları (Hoca kolay girsin diye gevşettik)
+    // Şifre Zorluk Ayarları
     opt.Password.RequireDigit = false;           // Rakam zorunlu değil
     opt.Password.RequireLowercase = false;       // Küçük harf zorunlu değil
     opt.Password.RequireUppercase = false;       // Büyük harf zorunlu değil
@@ -33,7 +33,6 @@ builder.Services.AddIdentity<AppUser, AppRole>(opt =>
 .AddDefaultTokenProviders();
 
 // --- 4. COOKIE (ÇEREZ) AYARLARI ---
-// Identity, cookie işini kendi halleder ama biz yolunu gösteriyoruz
 builder.Services.ConfigureApplicationCookie(opt =>
 {
     opt.LoginPath = "/Account/Login";        // Giriş yapmamışsa buraya at
@@ -52,6 +51,8 @@ builder.Services.AddNotyf(config =>
     config.IsDismissable = true;
     config.Position = NotyfPosition.BottomRight;
 });
+
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -72,6 +73,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHub<vizehaber.Hubs.GeneralHub>("/general-hub");
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
