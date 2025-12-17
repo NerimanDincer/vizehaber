@@ -24,7 +24,7 @@ namespace vizehaber.Controllers
             _notyf = notyf;
         }
 
-        // --- 1. KULLANICI LİSTESİ 
+        // --- 1. KULLANICI LİSTESİ ---
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index(string search)
         {
@@ -54,14 +54,20 @@ namespace vizehaber.Controllers
                 thisViewModel.Id = user.Id;
                 thisViewModel.Email = user.Email;
                 thisViewModel.UserName = user.UserName;
-                thisViewModel.FullName = user.FullName; 
-                thisViewModel.PhotoUrl = user.PhotoUrl; 
-                thisViewModel.Roles = await _userManager.GetRolesAsync(user);
+                thisViewModel.FullName = user.FullName;
+                thisViewModel.PhotoUrl = user.PhotoUrl;
+
+                // HATAYI ÇÖZEN KISIM:
+                // Veritabanından rolleri çekiyoruz
+                var roles = await _userManager.GetRolesAsync(user);
+
+                // Listeden ilk rolü alıp 'Role' değişkenine atıyoruz. Yoksa 'Kullanıcı' yazıyoruz.
+                // Artık "List<string>" hatası vermeyecek çünkü string'e çevirdik.
+                thisViewModel.Role = roles.FirstOrDefault() ?? "Kullanıcı";
 
                 userRolesViewModel.Add(thisViewModel);
             }
 
-            // Artık View'in istediği türü gönderiyoruz
             return View(userRolesViewModel);
         }
 
@@ -170,7 +176,7 @@ namespace vizehaber.Controllers
                 return RedirectToAction("Index");
             }
 
-            user.IsActive = !user.IsActive;
+            user.IsActive = !user.IsActive;     
             await _userManager.UpdateAsync(user);
 
             if (user.IsActive) _notyf.Success("Kilit açıldı.");

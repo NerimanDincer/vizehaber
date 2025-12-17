@@ -60,11 +60,11 @@
                             <td>@item.FullName</td>
                             <td>@item.Email</td>
                             <td>
-                                @if (item.SelectedRole == "Admin")
+                                @if (item.Role == "Admin")
                                 {
                                     <span class="badge badge-danger">Yönetici</span>
                                 }
-                                else if (item.SelectedRole == "Writer")
+                                else if (item.Role == "Writer")
                                 {
                                     <span class="badge badge-success">Yazar</span>
                                 }

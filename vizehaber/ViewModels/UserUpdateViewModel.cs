@@ -6,15 +6,12 @@ namespace vizehaber.ViewModels
     {
         public string FullName { get; set; }
         public string Email { get; set; }
-        public string? PhoneNumber { get; set; }
-        public string? Biography { get; set; }
-        public string? PhotoUrl { get; set; }
+        public string PhoneNumber { get; set; }
+        public string Biography { get; set; }
+        public string PhotoUrl { get; set; }
 
-        // Şifre değiştirmek isterse diye (Zorunlu değil)
-        [DataType(DataType.Password)]
-        public string? CurrentPassword { get; set; }
-
-        [DataType(DataType.Password)]
-        public string? NewPassword { get; set; }
+        // Şifre değiştirme alanları
+        public string CurrentPassword { get; set; }
+        public string NewPassword { get; set; }
     }
 }

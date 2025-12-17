@@ -4,18 +4,19 @@ namespace vizehaber.ViewModels
 {
     public class UserRoleViewModel
     {
-        // ID kısmını senin koduna uyumlu hale getirdim
         public string Id { get; set; }
-
         public string UserName { get; set; }
         public string Email { get; set; }
         public string FullName { get; set; }
         public string PhotoUrl { get; set; }
 
-        // 🔥 EKSİK OLANLAR EKLENDİ 🔥
-        public string Specialization { get; set; } // Uzmanlık alanı
-        public string SelectedRole { get; set; }   // Seçilen Rol (User, Admin, Writer)
+        // Kullanıcı düzenlerken unvanı buraya gelecek
+        public string Specialization { get; set; }
 
-        public IList<string> Roles { get; set; } // Kullanıcının mevcut rolleri
+        // Listeleme sayfasında (Index) tek bir rol göstermek için
+        public string Role { get; set; }
+
+        // Düzenleme sayfasında (EditUser) seçilen rolü tutmak için
+        public string SelectedRole { get; set; }
     }
 }
