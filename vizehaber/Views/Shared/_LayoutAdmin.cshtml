@@ -111,10 +111,25 @@
             {
 
                 <li class="nav-item">
-                    <a class="nav-link" asp-controller="User" asp-action="Index">
-                        <i class="fas fa-fw fa-users-cog"></i>
+                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUsers"
+                       aria-expanded="true" aria-controls="collapseUsers">
+                        <i class="fas fa-fw fa-users"></i>
                         <span>Kullanıcı Yönetimi</span>
                     </a>
+                    <div id="collapseUsers" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                        <div class="bg-white py-2 collapse-inner rounded">
+                            <h6 class="collapse-header">Üyeler & Yazarlar:</h6>
+
+                            <a class="collapse-item" asp-controller="User" asp-action="Index">
+                                <i class="fas fa-users mr-1"></i> Tüm Kullanıcılar
+                            </a>
+
+                            <a class="collapse-item" asp-controller="User" asp-action="WriterList">
+                                <i class="fas fa-pen-nib mr-1"></i> Yazar Kadrosu
+                            </a>
+
+                        </div>
+                    </div>
                 </li>
 
                 <li class="nav-item">
@@ -154,11 +169,11 @@
                         <i class="fa fa-bars"></i>
                     </button>
 
-                    <form asp-controller="Home" asp-action="Index" method="get"
-                          class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                    <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search"
+                          asp-controller="Home" asp-action="Search" method="get">
                         <div class="input-group">
-                            <input type="text" name="search" class="form-control bg-light border-0 small"
-                                   placeholder="Haberlerde ara..." aria-label="Search">
+                            <input type="text" name="query" class="form-control bg-light border-0 small" placeholder="Haber ara..."
+                                   aria-label="Search" aria-describedby="basic-addon2">
                             <div class="input-group-append">
                                 <button class="btn btn-primary" type="submit">
                                     <i class="fas fa-search fa-sm"></i>
@@ -176,13 +191,13 @@
                             </a>
                             <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
                                  aria-labelledby="searchDropdown">
-                                <form class="form-inline mr-auto w-100 navbar-search">
+                                <form class="form-inline mr-auto w-100 navbar-search" asp-controller="Home" asp-action="Search" method="get">
                                     <div class="input-group">
-                                        <input type="text" class="form-control bg-light border-0 small"
-                                               placeholder="Search for..." aria-label="Search"
+                                        <input type="text" name="query" class="form-control bg-light border-0 small"
+                                               placeholder="Haber ara..." aria-label="Search"
                                                aria-describedby="basic-addon2">
                                         <div class="input-group-append">
-                                            <button class="btn btn-primary" type="button">
+                                            <button class="btn btn-primary" type="submit">
                                                 <i class="fas fa-search fa-sm"></i>
                                             </button>
                                         </div>
@@ -191,31 +206,7 @@
                             </div>
                         </li>
 
-                        @* <li class="nav-item dropdown no-arrow mx-1">
-                            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
-                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-bell fa-fw"></i>
-                                <span class="badge badge-danger badge-counter">3+</span>
-                            </a>
-                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                 aria-labelledby="alertsDropdown">
-                                <h6 class="dropdown-header">
-                                    Bildirim Merkezi
-                                </h6>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="mr-3">
-                                        <div class="icon-circle bg-primary">
-                                            <i class="fas fa-file-alt text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-gray-500">12 Aralık 2023</div>
-                                        <span class="font-weight-bold">Yeni aylık rapor hazır!</span>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item text-center small text-gray-500" href="#">Tüm Bildirimleri Göster</a>
-                            </div>
-                        </li> *@
+                        @* <li class="nav-item dropdown no-arrow mx-1"> ... </li> *@
 
                         @if (User.IsInRole("Admin"))
                         {
@@ -231,10 +222,7 @@
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">
                                     @if (User.Identity.IsAuthenticated)
                                     {
-                                        // Kullanıcı giriş yapmışsa bilgilerini veritabanından çek
                                         var user = await UserManager.GetUserAsync(User);
-
-                                        // Eğer kullanıcı bulunduysa Adını Soyadını yaz, yoksa (ne olur ne olmaz) mailini yaz
                                         @(user?.FullName ?? User.Identity.Name)
                                     }
                                     else
@@ -245,12 +233,8 @@
 
                                 @if (User.Identity.IsAuthenticated)
                                 {
-                                    // Kullanıcıyı veritabanından çek (Önbellek yerine taze veri)
                                     var currentUserForImg = await UserManager.GetUserAsync(User);
-
-                                    // Fotoğrafı varsa onu, yoksa varsayılanı kullan
                                     var photoPath = currentUserForImg?.PhotoUrl ?? "/sbadmin/img/undraw_profile.svg";
-
                                     <img class="img-profile rounded-circle" src="@photoPath" style="object-fit: cover;">
                                 }
                                 else
@@ -276,7 +260,7 @@
                                     @if (User.IsInRole("Admin"))
                                     {
                                         <a class="dropdown-item" asp-controller="Admin" asp-action="Index">
-                                            <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                                            <i class="fas fa-tools fa-sm fa-fw mr-2 text-gray-400"></i>
                                             Admin Paneli
                                         </a>
                                     }
@@ -306,14 +290,12 @@
 
                 </nav>
                 <div class="container-fluid">
-
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         @RenderSection("CardHeader", required: false)
                     </div>
-
                     @RenderBody()
-
                 </div>
+
             </div>
             <footer class="sticky-footer bg-white">
                 <div class="container my-auto">

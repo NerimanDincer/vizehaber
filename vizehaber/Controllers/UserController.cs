@@ -8,7 +8,7 @@ using vizehaber.ViewModels; // ViewModel klasörünü unutma
 
 namespace vizehaber.Controllers
 {
-    [Authorize] // Herkes profilini görebilsin ama...
+    [Authorize] // Herkes profilini görebilsin
     public class UserController : Controller
     {
         private readonly UserManager<AppUser> _userManager;
@@ -24,30 +24,45 @@ namespace vizehaber.Controllers
             _notyf = notyf;
         }
 
-        // --- 1. KULLANICI LİSTESİ (ROLLERİYLE BERABER) ---
-        [Authorize(Roles = "Admin")] // Sadece Admin görebilir
-        public async Task<IActionResult> Index()
+        // --- 1. KULLANICI LİSTESİ 
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Index(string search)
         {
-            var users = await _userManager.Users.ToListAsync();
-            var userListViewModel = new List<UserRoleViewModel>();
+            // 1. Sorguyu Hazırla
+            var usersQuery = _userManager.Users.AsQueryable();
+
+            // 2. Arama varsa FİLTRELE
+            if (!string.IsNullOrEmpty(search))
+            {
+                usersQuery = usersQuery.Where(u =>
+                    u.UserName.Contains(search) ||
+                    u.FullName.Contains(search) ||
+                    u.Email.Contains(search));
+
+                ViewData["SearchTerm"] = search;
+            }
+
+            // 3. Kullanıcıları Çek
+            var users = await usersQuery.ToListAsync();
+
+            // AppUser listesini UserRoleViewModel listesine çeviriyoruz
+            var userRolesViewModel = new List<UserRoleViewModel>();
 
             foreach (var user in users)
             {
-                // Her kullanıcının rolünü çekiyoruz
-                var roles = await _userManager.GetRolesAsync(user);
+                var thisViewModel = new UserRoleViewModel();
+                thisViewModel.Id = user.Id;
+                thisViewModel.Email = user.Email;
+                thisViewModel.UserName = user.UserName;
+                thisViewModel.FullName = user.FullName; 
+                thisViewModel.PhotoUrl = user.PhotoUrl; 
+                thisViewModel.Roles = await _userManager.GetRolesAsync(user);
 
-                userListViewModel.Add(new UserRoleViewModel
-                {
-                    Id = user.Id,
-                    FullName = user.FullName,
-                    Email = user.Email,
-                    SelectedRole = roles.FirstOrDefault() ?? "Rol Yok" // İlk rolü al, yoksa "Rol Yok" yaz
-                    // IsActive bilgisini ViewModel'e eklememiştik, gerekirse ekleriz 
-                    // ama şimdilik Id üzerinden işlem yapıyoruz.
-                });
+                userRolesViewModel.Add(thisViewModel);
             }
 
-            return View(userListViewModel);
+            // Artık View'in istediği türü gönderiyoruz
+            return View(userRolesViewModel);
         }
 
         [HttpGet]
@@ -65,6 +80,8 @@ namespace vizehaber.Controllers
         [HttpGet]
         public async Task<IActionResult> EditUser(string id)
         {
+            if (string.IsNullOrEmpty(id)) return NotFound();
+
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
 
@@ -73,36 +90,71 @@ namespace vizehaber.Controllers
             var model = new UserRoleViewModel
             {
                 Id = user.Id,
-                FullName = user.FullName,
+                UserName = user.UserName,
                 Email = user.Email,
-                SelectedRole = userRoles.FirstOrDefault() ?? "User"
+                FullName = user.FullName,
+                PhotoUrl = user.PhotoUrl,
+                Specialization = user.Specialization,
+                SelectedRole = userRoles.FirstOrDefault()
             };
+
+            // --- BURAYI GÜNCELLEDİK ---
+
+            // 1. Veritabanındaki mevcut rolleri çek (Liste olarak al)
+            var allRoles = _roleManager.Roles.Select(r => r.Name).ToList();
+
+            // 2. Eğer listede 'User' yoksa ELLE EKLE (Ki seçebilelim)
+            if (!allRoles.Contains("User"))
+            {
+                allRoles.Add("User");
+            }
+
+            // 3. Eğer listede 'Writer' veya 'Admin' eksikse onları da garanti olsun diye ekle
+            if (!allRoles.Contains("Writer")) allRoles.Add("Writer");
+            if (!allRoles.Contains("Admin")) allRoles.Add("Admin");
+
+            ViewBag.Roles = allRoles;
+
             return View(model);
         }
 
         // --- 4. KULLANICI DÜZENLEME (POST) (HATA 1 ÇÖZÜMÜ) ---
         [Authorize(Roles = "Admin")]
         [HttpPost]
+        [ValidateAntiForgeryToken] // Güvenlik için
         public async Task<IActionResult> EditUser(UserRoleViewModel model)
         {
             var user = await _userManager.FindByIdAsync(model.Id);
             if (user == null) return NotFound();
 
-            // 🔥 HATA 1 ÇÖZÜMÜ: Rol veritabanında yoksa OLUŞTUR!
             if (!await _roleManager.RoleExistsAsync(model.SelectedRole))
             {
                 await _roleManager.CreateAsync(new AppRole { Name = model.SelectedRole });
             }
 
-            // Mevcut rolleri sil
             var userRoles = await _userManager.GetRolesAsync(user);
             await _userManager.RemoveFromRolesAsync(user, userRoles);
 
-            // Yeni rolü ata
             await _userManager.AddToRoleAsync(user, model.SelectedRole);
 
-            _notyf.Success($"{user.FullName} yetkisi '{model.SelectedRole}' oldu.");
-            return RedirectToAction("Index");
+            user.Specialization = model.Specialization;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+            {
+                _notyf.Success($"{user.FullName} başarıyla güncellendi. ✅");
+                return RedirectToAction("Index"); // Listeye geri dön
+            }
+            else
+            {
+                // Hata varsa ekrana bas
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+                return View(model);
+            }
         }
 
         // --- 5. KULLANICIYI AKTİF/PASİF YAP ---
@@ -239,6 +291,62 @@ namespace vizehaber.Controllers
 
             _notyf.Error("Güncelleme sırasında hata oluştu.");
             return View(model);
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> WriterList()
+        {
+            var writers = await _userManager.GetUsersInRoleAsync("Writer");
+
+            return View(writers);
+        }
+
+        // --- KULLANICIYI ASKIYA AL / ENGELİ KALDIR ---
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ToggleBan(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            // Eğer şu an engelli ise -> Engelini Kaldır
+            if (user.LockoutEnd != null && user.LockoutEnd > DateTime.Now)
+            {
+                user.LockoutEnd = null; // Kilidi aç
+                await _userManager.UpdateAsync(user);
+                _notyf.Success($"{user.FullName} kullanıcısının engeli kaldırıldı. ✅");
+            }
+            else
+            {
+                // Eğer engelli değilse -> 30 Günlük (veya sonsuz) Engel Koy
+                user.LockoutEnd = DateTime.Now.AddDays(30); // İstersen AddYears(99) yapabilirsin
+                await _userManager.UpdateAsync(user);
+                _notyf.Warning($"{user.FullName} 30 günlüğüne askıya alındı. ⛔");
+            }
+
+            // İşlem bitince Yazar Listesine geri dön
+            return RedirectToAction("WriterList");
+        }
+
+        // --- KULLANICIYI SİL ---
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            // Kullanıcıyı sil
+            var result = await _userManager.DeleteAsync(user);
+
+            if (result.Succeeded)
+            {
+                _notyf.Success($"{user.FullName} sistemden tamamen silindi. 🗑️");
+            }
+            else
+            {
+                _notyf.Error("Silme işlemi başarısız oldu. Kullanıcının haberleri veya yorumları olabilir.");
+            }
+
+            return RedirectToAction("WriterList");
         }
     }
 }

@@ -1,0 +1,49 @@
+﻿@{
+    ViewData["Title"] = "Hata";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>Sayfa Bulunamadı - 404</title>
+    <link href="~/sbadmin/css/sb-admin-2.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f8f9fc;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .error-code {
+            font-size: 7rem;
+            font-weight: 800;
+            color: #4e73df;
+        }
+
+        .error-text {
+            font-size: 1.5rem;
+            color: #5a5c69;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="error-code" data-text="404">404</div>
+
+        <p class="error-text">Ups! Aradığınız sayfayı bulamıyoruz.</p>
+        <p class="text-gray-500 mb-5">Belki silinmiştir ya da adresi yanlış yazdınız.</p>
+
+        <a href="/" class="btn btn-primary btn-lg px-4 shadow">
+            <i class="fas fa-arrow-left mr-2"></i> Anasayfaya Dön
+        </a>
+    </div>
+
+</body>
+</html>

@@ -65,6 +65,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStatusCodePagesWithReExecute("/Home/ErrorPage", "?code={0}"); //404 hatalarını yakalama kısmı
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -78,9 +79,8 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// --- 7. VERİTABANI BAŞLATICI (SeedData) ---
-// ⚠️ DİKKAT: Eski SeedData artık çalışmaz çünkü User tablosu değişti.
-// O yüzden şimdilik burayı yorum satırına alıyoruz. Patlamasın.
+// Eski SeedData artık çalışmaz çünkü User tablosu değişti.
+// O yüzden şimdilik burayı yorum satırına alıyorum.
 /*
 using (var scope = app.Services.CreateScope())
 {

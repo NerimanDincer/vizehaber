@@ -6,9 +6,42 @@
 }
 
 <div class="card shadow mb-4">
-    <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Kullanıcı Listesi</h6>
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+
+        <div>
+            <h6 class="m-0 font-weight-bold text-primary">👥 Kullanıcı Listesi</h6>
+            <span class="small text-muted">Toplam: @Model.Count Kullanıcı</span>
+        </div>
+
+        <form method="get" asp-action="Index" class="form-inline">
+            <div class="input-group input-group-sm">
+
+                <input type="text" name="search" class="form-control small"
+                       style="background-color: #eaecf4; border: 1px solid #d1d3e2; color: #6e707e; width: 300px;"
+                       placeholder="İsim, mail veya kullanıcı adı..."
+                       value="@ViewData["SearchTerm"]" aria-label="Search">
+
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search fa-sm"></i>
+                    </button>
+                </div>
+
+                @if (ViewData["SearchTerm"] != null)
+                {
+                    <div class="input-group-append ml-1">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </div>
+                }
+
+            </div>
+        </form>
+
     </div>
+
+
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-bordered" width="100%" cellspacing="0">

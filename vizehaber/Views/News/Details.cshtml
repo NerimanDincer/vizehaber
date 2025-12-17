@@ -1,4 +1,5 @@
-﻿@model vizehaber.Models.News
+﻿@using System.Security.Claims
+@model vizehaber.Models.News
 
 @{
     ViewData["Title"] = Model.Title;
@@ -25,9 +26,20 @@
                     <i class="fas fa-user"></i> @(Model.AppUser?.FullName ?? "Editör")
                 </span>
 
-                <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.9rem;">
-                    <i class="fas fa-eye"></i> @Model.ViewCount Kez Okundu
-                </span>
+                @{
+                    // Şu an siteye giren kişinin ID'sini alıyoruz
+                    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                    // KURAL: Kullanıcı Admin ise VEYA Yazının sahibi kendisi ise GÖRSÜN
+                    bool canSeeStats = User.IsInRole("Admin") || (currentUserId == Model.AppUserId);
+                }
+
+                @if (canSeeStats)
+                {
+                    <span class="mr-3" title="Bu istatistiği sadece siz ve yöneticiler görebilir">
+                        <i class="fas fa-eye text-warning"></i> @Model.ViewCount
+                    </span>
+                }
 
             </div>
 
@@ -38,6 +50,24 @@
 
             <div class="news-content" style="font-size: 1.1rem; line-height: 1.8;">
                 @Html.Raw(Model.Content)
+                <div class="mt-4 mb-4">
+                    <h6 class="text-muted font-weight-bold mb-3">Haberi Paylaş:</h6>
+
+                    <a href="https://api.whatsapp.com/send?text=@Model.Title - @Context.Request.Scheme://@Context.Request.Host@Context.Request.Path"
+                       target="_blank" class="btn btn-success btn-sm rounded-circle mr-2" title="WhatsApp'ta Paylaş">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+
+                    <a href="https://twitter.com/intent/tweet?text=@Model.Title&url=@Context.Request.Scheme://@Context.Request.Host@Context.Request.Path"
+                       target="_blank" class="btn btn-dark btn-sm rounded-circle mr-2" title="Twitter'da Paylaş">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=@Context.Request.Scheme://@Context.Request.Host@Context.Request.Path"
+                       target="_blank" class="btn btn-primary btn-sm rounded-circle" title="Facebook'ta Paylaş">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                </div>
             </div>
 
             <hr class="my-5">

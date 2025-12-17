@@ -10,7 +10,7 @@ namespace vizehaber.Models
         public string PhotoUrl { get; set; }
 
         // Bizim projenin çalışması için gerekenler:
-        public bool IsActive { get; set; } = true; // <-- Bunu ekledik, hata gidecek
+        public bool IsActive { get; set; } = true; 
         public string? Biography { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 

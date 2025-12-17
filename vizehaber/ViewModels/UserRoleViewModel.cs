@@ -1,15 +1,21 @@
-﻿using vizehaber.Models;
+﻿using System.Collections.Generic;
 
 namespace vizehaber.ViewModels
 {
     public class UserRoleViewModel
     {
-        public string Id { get; set; } // Kullanıcının ID'si
-        public string FullName { get; set; } // Adı Soyadı
-        public string Email { get; set; } // E-postası
-        public string SelectedRole { get; set; } // Seçilen Rol (Admin/Writer/User)
+        // ID kısmını senin koduna uyumlu hale getirdim
+        public string Id { get; set; }
 
-        // Dropdown (Açılır Kutu) için Rol Listesi
-        public List<string> Roles { get; set; } = new List<string> { "Admin", "Writer", "User" };
+        public string UserName { get; set; }
+        public string Email { get; set; }
+        public string FullName { get; set; }
+        public string PhotoUrl { get; set; }
+
+        // 🔥 EKSİK OLANLAR EKLENDİ 🔥
+        public string Specialization { get; set; } // Uzmanlık alanı
+        public string SelectedRole { get; set; }   // Seçilen Rol (User, Admin, Writer)
+
+        public IList<string> Roles { get; set; } // Kullanıcının mevcut rolleri
     }
 }

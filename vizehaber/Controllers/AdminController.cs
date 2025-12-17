@@ -27,8 +27,6 @@ namespace vizehaber.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Verileri çekip hemen Listeye çeviriyoruz (.ToList())
-            // Böylece .Count özelliği hata vermez.
             var news = (await _newsRepository.GetAllAsync()).ToList();
             var categories = (await _categoryRepository.GetAllAsync()).ToList();
             var users = (await _userRepository.GetAllAsync()).ToList();
@@ -44,7 +42,7 @@ namespace vizehaber.Controllers
 
         public async Task<IActionResult> GetReport()
         {
-            // Verileri çekiyoruz
+            //verileri çekme kısmı
             var news = (await _newsRepository.GetAllAsync()).ToList();
             var categories = (await _categoryRepository.GetAllAsync()).ToList();
             var users = (await _userRepository.GetAllAsync()).ToList();
@@ -53,7 +51,7 @@ namespace vizehaber.Controllers
             var builder = new StringBuilder();
 
             // --- BAŞLIK ---
-            // Not: Excel için sütunları ayırmak adına ";" (noktalı virgül) kullanıyoruz.
+            
             builder.AppendLine($"Rapor Tarihi:;{DateTime.Now:dd.MM.yyyy HH:mm}");
             builder.AppendLine("");
 
@@ -68,7 +66,7 @@ namespace vizehaber.Controllers
 
             // --- KULLANICI LİSTESİ ---
             builder.AppendLine("SON UYE OLAN KULLANICILAR");
-            // Başlıkları Türkçe karakterden arındırmak CSV için bazen daha güvenlidir ama BOM ile sorun olmaz.
+            
             builder.AppendLine("Ad Soyad;Email;Unvan (Uzmanlik);Kayit Tarihi");
 
             foreach (var user in users.OrderByDescending(x => x.CreatedDate).Take(20)) // Son 20 kişiyi getir
@@ -80,8 +78,6 @@ namespace vizehaber.Controllers
                 builder.AppendLine($"{user.FullName};{user.Email};{unvan};{user.CreatedDate:dd.MM.yyyy}");
             }
 
-            // 🔥 SİHİRLİ DOKUNUŞ: Excel için UTF-8 BOM İmzası 🔥
-            // Bu kısım karakterlerin (Ş, İ, Ğ) bozulmasını engeller.
             var content = builder.ToString();
             var buffer = Encoding.UTF8.GetBytes(content);
             var bom = Encoding.UTF8.GetPreamble();

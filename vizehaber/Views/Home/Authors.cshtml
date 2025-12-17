@@ -16,6 +16,15 @@
                              class="rounded-circle mb-3" width="80" height="80" style="object-fit:cover;">
 
                         <h5 class="font-weight-bold text-gray-900">@item.FullName</h5>
+
+                        @if (!string.IsNullOrEmpty(item.Specialization))
+                        {
+                            <small class="text-primary font-weight-bold">@item.Specialization</small>
+                        }
+                        else
+                        {
+                            <small class="text-muted">Yazar</small>
+                        }
                         @* <p class="text-muted small">@item.Role</p> *@
 
                         <a asp-controller="Home" asp-action="AuthorDetail" asp-route-id="@item.Id" class="btn btn-primary btn-sm mt-2">

@@ -1,7 +1,7 @@
 ﻿using AspNetCoreHero.ToastNotification.Abstractions;
-using Microsoft.AspNetCore.Identity; // 🔥 BU EKSİK OLABİLİR
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore; // ToListAsync için gerekli
+using Microsoft.EntityFrameworkCore;
 using vizehaber.Models;
 using vizehaber.Repositories;
 using System.Diagnostics;
@@ -10,28 +10,33 @@ namespace vizehaber.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly ILogger<HomeController> _logger; // Logger eklendi (Error metodunda kullanılıyor)
         private readonly IRepository<News> _newsRepository;
         private readonly IRepository<Category> _categoryRepository;
         private readonly IRepository<AppUser> _userRepository;
         private readonly INotyfService _notyf;
-
-        // 🔥 1. UserManager'ı burada tanımlıyoruz
         private readonly UserManager<AppUser> _userManager;
+        private readonly AppDbContext _context; // Veritabanı bağlantımız
 
-        // 🔥 2. Constructor'da (Yapıcı Metot) içeri alıyoruz
-        public HomeController(IRepository<News> newsRepository,
+        // YAPICI METOT (CONSTRUCTOR) - EKSİKSİZ
+        public HomeController(ILogger<HomeController> logger,
+                              IRepository<News> newsRepository,
                               IRepository<Category> categoryRepository,
                               IRepository<AppUser> userRepository,
                               INotyfService notyf,
-                              UserManager<AppUser> userManager) // <-- Buraya ekledik
+                              UserManager<AppUser> userManager,
+                              AppDbContext context) // 🔥 Context buraya eklendi
         {
+            _logger = logger;
             _newsRepository = newsRepository;
             _categoryRepository = categoryRepository;
             _userRepository = userRepository;
             _notyf = notyf;
-            _userManager = userManager; // <-- Eşleştirdik
+            _userManager = userManager;
+            _context = context; // 🔥 İçeri alındı
         }
 
+        // --- ANASAYFA ---
         public async Task<IActionResult> Index(int? categoryId, string search)
         {
             var newsList = (await _newsRepository.GetAllAsync()).ToList();
@@ -49,6 +54,7 @@ namespace vizehaber.Controllers
                 newsList = newsList.Where(x => x.CategoryId == categoryId.Value).ToList();
             }
 
+            // Anasayfadaki arama (Filtreleme)
             if (!string.IsNullOrEmpty(search))
             {
                 newsList = newsList.Where(x =>
@@ -72,16 +78,34 @@ namespace vizehaber.Controllers
             return View(finalNews);
         }
 
-        // --- YAZARLAR SAYFASI (DÜZELTİLDİ) ---
+        // --- ÜST ARAMA KUTUSU (SEARCH METODU) ---
+        [HttpGet]
+        public async Task<IActionResult> Search(string query)
+        {
+            // Eğer kutu boşsa anasayfaya at
+            if (string.IsNullOrEmpty(query)) return RedirectToAction("Index");
+
+            ViewData["Query"] = query; // Aranan kelimeyi ekrana yazdırmak için
+
+            // 🔥 DÜZELTİLDİ: Repository yerine Context kullanıyoruz (Hatasız)
+            var searchResults = await _context.News
+                .Include(x => x.Category)
+                .Include(x => x.AppUser)
+                .Where(x => x.Title.Contains(query) || x.Content.Contains(query))
+                .OrderByDescending(x => x.PublishedDate)
+                .ToListAsync();
+
+            return View(searchResults);
+        }
+
+        // --- YAZARLAR LİSTESİ ---
         public async Task<IActionResult> Authors()
         {
-            // 🔥 ARTIK HATA VERMEZ: Sadece "Writer" rolündeki kullanıcıları getir
             var writers = await _userManager.GetUsersInRoleAsync("Writer");
-
             return View(writers);
         }
 
-        // --- YAZAR DETAY SAYFASI ---
+        // --- YAZAR PROFİL DETAYI ---
         [HttpGet]
         public async Task<IActionResult> AuthorDetail(string id)
         {
@@ -100,6 +124,7 @@ namespace vizehaber.Controllers
             return View(user);
         }
 
+        // --- DİĞER SAYFALAR ---
         public IActionResult Privacy()
         {
             return View();
@@ -107,6 +132,21 @@ namespace vizehaber.Controllers
 
         public IActionResult About()
         {
+            return View();
+        }
+
+        // --- ÖZEL HATA SAYFASI YÖNLENDİRİCİSİ ---
+        public IActionResult ErrorPage(int? code)
+        {
+            if (code == 404)
+            {
+                ViewData["ErrorMessage"] = "Aradığınız sayfa bulunamadı.";
+            }
+            else
+            {
+                ViewData["ErrorMessage"] = "Bir hata oluştu.";
+            }
+
             return View();
         }
 
