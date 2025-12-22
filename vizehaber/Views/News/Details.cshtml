@@ -3,7 +3,7 @@
 
 @{
     ViewData["Title"] = Model.Title;
-    Layout = "~/Views/Shared/_LayoutAdmin.cshtml"; 
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 }
 
 <div class="container my-5">
@@ -109,7 +109,7 @@
 
                         @if (User.Identity.IsAuthenticated)
                         {
-                            <form asp-action="AddComment" method="post">
+                            <form asp-action="AddComment" method="post" id="commentForm">
                                 <input type="hidden" name="newsId" value="@Model.Id" />
 
                                 <div class="form-group">

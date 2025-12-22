@@ -17,12 +17,12 @@ namespace vizehaber.Controllers
         private readonly IRepository<News> _newsRepository;
         private readonly IRepository<Category> _categoryRepository;
         private readonly IRepository<Comment> _commentRepository;
-        private readonly IRepository<AppUser> _userRepository; 
+        private readonly IRepository<AppUser> _userRepository;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly INotyfService _notyf;
 
         private readonly AppDbContext _context;
-        private readonly IHubContext<GeneralHub> _hubContext; 
+        private readonly IHubContext<GeneralHub> _hubContext;
 
         public NewsController(IRepository<News> newsRepository,
                               IRepository<Category> categoryRepository,
@@ -40,7 +40,7 @@ namespace vizehaber.Controllers
             _webHostEnvironment = webHostEnvironment;
             _notyf = notyf;
             _context = context;
-            _hubContext=hubContext;
+            _hubContext = hubContext;
         }
 
         public async Task<IActionResult> Index()
@@ -171,7 +171,7 @@ namespace vizehaber.Controllers
             ModelState.Remove("Category");
             ModelState.Remove("AppUser");
             ModelState.Remove("Comments");
-            ModelState.Remove("AppUserId"); // <--- "AppUserId required" hatasını bu çözer!
+            ModelState.Remove("AppUserId");
 
             // 2. Metin Alanlarını Güncelle (Formdan gelen yeni verileri eskisinin üzerine yaz)
             existingNews.Title = news.Title;
@@ -236,7 +236,7 @@ namespace vizehaber.Controllers
                 return Json(new { success = false, message = "Lütfen giriş yapın." });
             }
 
-            string userName = User.Identity.Name; // Veya veritabanından FullName çekebilirsin
+            string userName = User.Identity.Name;
 
             var comment = new Comment
             {
@@ -251,9 +251,11 @@ namespace vizehaber.Controllers
 
             string date = DateTime.Now.ToString("dd.MM.yyyy HH:mm");
 
+            // SignalR ile herkese bildir
             await _hubContext.Clients.All.SendAsync("ReceiveComment", newsId, userName, text, date);
 
-            return RedirectToAction("Details", new { id = newsId });
+            // GÜNCELLEME: Sayfayı yenileme, JSON dön ki Ajax mutlu olsun
+            return Json(new { success = true });
         }
 
         [AllowAnonymous]
